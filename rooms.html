@@ -37,6 +37,8 @@
 <form id="room-form">
 <input type="text" id="room-name" placeholder="اسم القاعة" required>
 <button type="submit">➕ إضافة قاعة</button>
+<button type="button" onclick="restoreRoomsBackup()" style="background: #ffc107; color: #212529; margin-right: 10px;">🔄 استعادة النسخة الاحتياطية</button>
+<button type="button" onclick="resetToDefault()" style="background: #6c757d; color: white; margin-right: 10px;">⚙️ إعادة تعيين</button>
 </form>
 
 <ul id="room-list"></ul>
@@ -74,20 +76,48 @@ let rooms = [];
 
 // تحميل القاعات من localStorage
 function loadRooms() {
-  const savedRooms = localStorage.getItem('school_rooms');
-  if (savedRooms) {
-    rooms = JSON.parse(savedRooms);
-  } else {
-    // قاعات افتراضية
+  try {
+    const savedRooms = localStorage.getItem('school_rooms');
+    if (savedRooms) {
+      rooms = JSON.parse(savedRooms);
+      console.log('تم تحميل القاعات من localStorage:', rooms);
+    } else {
+      console.log('لا توجد قاعات محفوظة، إنشاء قاعات افتراضية...');
+      // قاعات افتراضية
+      rooms = ['المختبر', 'قاعة الحاسوب', 'المكتبة', 'القاعة الرئيسية'];
+      saveRooms();
+    }
+  } catch (error) {
+    console.error('خطأ في تحميل القاعات:', error);
+    // في حالة الخطأ، استخدم القاعات الافتراضية
     rooms = ['المختبر', 'قاعة الحاسوب', 'المكتبة', 'القاعة الرئيسية'];
     saveRooms();
   }
+  
+  // التأكد من وجود قاعات
+  if (!Array.isArray(rooms) || rooms.length === 0) {
+    console.log('تصحيح: إضافة قاعات افتراضية');
+    rooms = ['المختبر', 'قاعة الحاسوب', 'المكتبة', 'القاعة الرئيسية'];
+    saveRooms();
+  }
+  
   displayRooms();
 }
 
 // حفظ القاعات في localStorage
 function saveRooms() {
-  localStorage.setItem('school_rooms', JSON.stringify(rooms));
+  try {
+    // حفظ النسخة الأساسية
+    localStorage.setItem('school_rooms', JSON.stringify(rooms));
+    // حفظ نسخة احتياطية
+    localStorage.setItem('school_rooms_backup', JSON.stringify(rooms));
+    // حفظ وقت آخر تحديث
+    localStorage.setItem('school_rooms_last_update', new Date().toISOString());
+    console.log('تم حفظ القاعات:', rooms);
+  } catch (error) {
+    console.error('خطأ في حفظ القاعات:', error);
+    alert('⚠️ حدث خطأ في حفظ البيانات. تأكد من وجود مساحة كافية في المتصفح.');
+  }
 }
 
 // عرض قائمة القاعات
@@ -130,10 +160,13 @@ function displayRooms() {
     margin: 20px 0; text-align: center;
   `;
   statsDiv.innerHTML = `
-    <h3 style="margin: 0 0 10px 0;">📊 إحصائيات القاعات</h3>
+    <h3 style="margin: 0 0 15px 0;">📊 إحصائيات القاعات</h3>
     <p style="margin: 5px 0; font-size: 1.1em;">
       إجمالي القاعات: <strong>${rooms.length}</strong>
     </p>
+    <button onclick="showDataStatus()" style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-top: 10px; font-size: 0.9em;">
+      📋 حالة البيانات
+    </button>
   `;
   roomList.appendChild(statsDiv);
 }
@@ -178,6 +211,53 @@ document.addEventListener('DOMContentLoaded', function() {
   loadRooms();
   document.getElementById('room-form').addEventListener('submit', addRoom);
 });
+
+// استعادة النسخة الاحتياطية
+function restoreRoomsBackup() {
+  try {
+    const backupRooms = localStorage.getItem('school_rooms_backup');
+    if (backupRooms) {
+      const parsedBackup = JSON.parse(backupRooms);
+      if (Array.isArray(parsedBackup) && parsedBackup.length > 0) {
+        rooms = parsedBackup;
+        saveRooms();
+        displayRooms();
+        alert(`✅ تم استعادة ${rooms.length} قاعة من النسخة الاحتياطية`);
+      } else {
+        alert('⚠️ النسخة الاحتياطية فارغة أو تالفة');
+      }
+    } else {
+      alert('❌ لا توجد نسخة احتياطية متاحة');
+    }
+  } catch (error) {
+    console.error('خطأ في استعادة النسخة الاحتياطية:', error);
+    alert('❌ فشل في استعادة النسخة الاحتياطية');
+  }
+}
+
+// إعادة تعيين للقاعات الافتراضية
+function resetToDefault() {
+  if (confirm('هل أنت متأكد من إعادة تعيين جميع القاعات للإعدادات الافتراضية؟\nسيتم فقدان جميع القاعات المخصصة.')) {
+    rooms = ['المختبر', 'قاعة الحاسوب', 'المكتبة', 'القاعة الرئيسية'];
+    saveRooms();
+    displayRooms();
+    alert('✅ تم إعادة تعيين القاعات للإعدادات الافتراضية');
+  }
+}
+
+// عرض معلومات حالة البيانات
+function showDataStatus() {
+  const lastUpdate = localStorage.getItem('school_rooms_last_update');
+  const hasBackup = localStorage.getItem('school_rooms_backup');
+  const currentRooms = rooms.length;
+  
+  let message = `📊 حالة بيانات القاعات:\n`;
+  message += `• عدد القاعات الحالية: ${currentRooms}\n`;
+  message += `• آخر تحديث: ${lastUpdate ? new Date(lastUpdate).toLocaleString('ar-SA') : 'غير محدد'}\n`;
+  message += `• النسخة الاحتياطية: ${hasBackup ? 'متوفرة ✅' : 'غير متوفرة ❌'}`;
+  
+  alert(message);
+}
 
 // دوال إحصائيات القاعة
 function showRoomStats(roomName) {
