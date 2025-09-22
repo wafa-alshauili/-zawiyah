@@ -43,6 +43,110 @@
 
 <script src="script.js"></script>
 <script>
+// نظام إدارة القاعات محلياً
+let rooms = [];
+
+// تحميل القاعات من localStorage
+function loadRooms() {
+  const savedRooms = localStorage.getItem('school_rooms');
+  if (savedRooms) {
+    rooms = JSON.parse(savedRooms);
+  } else {
+    // قاعات افتراضية
+    rooms = ['المختبر', 'قاعة الحاسوب', 'المكتبة', 'القاعة الرئيسية'];
+    saveRooms();
+  }
+  displayRooms();
+}
+
+// حفظ القاعات في localStorage
+function saveRooms() {
+  localStorage.setItem('school_rooms', JSON.stringify(rooms));
+}
+
+// عرض قائمة القاعات
+function displayRooms() {
+  const roomList = document.getElementById('room-list');
+  roomList.innerHTML = '';
+  
+  if (rooms.length === 0) {
+    roomList.innerHTML = '<li style="text-align: center; color: #666; padding: 20px; font-style: italic;">لا توجد قاعات مضافة</li>';
+    return;
+  }
+  
+  rooms.forEach((room, index) => {
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0;">
+        <div>
+          <strong style="color: #1b3767; font-size: 1.1em;">${index + 1}. ${room}</strong>
+          <div style="color: #666; font-size: 0.9em; margin-top: 5px;">📍 قاعة متاحة للحجز</div>
+        </div>
+        <button onclick="deleteRoom(${index})" 
+                style="background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9em;">
+          🗑️ حذف
+        </button>
+      </div>
+    `;
+    roomList.appendChild(li);
+  });
+  
+  // إضافة إحصائيات
+  const statsDiv = document.createElement('div');
+  statsDiv.style.cssText = `
+    background: #1b3767; color: white; padding: 15px; border-radius: 8px; 
+    margin: 20px 0; text-align: center;
+  `;
+  statsDiv.innerHTML = `
+    <h3 style="margin: 0 0 10px 0;">📊 إحصائيات القاعات</h3>
+    <p style="margin: 5px 0; font-size: 1.1em;">
+      إجمالي القاعات: <strong>${rooms.length}</strong>
+    </p>
+  `;
+  roomList.appendChild(statsDiv);
+}
+
+// إضافة قاعة جديدة
+function addRoom(event) {
+  event.preventDefault();
+  const roomNameInput = document.getElementById('room-name');
+  const roomName = roomNameInput.value.trim();
+  
+  if (!roomName) {
+    alert('⚠️ يرجى إدخال اسم القاعة');
+    return;
+  }
+  
+  if (rooms.includes(roomName)) {
+    alert('❌ هذه القاعة موجودة بالفعل');
+    return;
+  }
+  
+  rooms.push(roomName);
+  saveRooms();
+  displayRooms();
+  roomNameInput.value = '';
+  
+  alert(`✅ تم إضافة القاعة "${roomName}" بنجاح`);
+}
+
+// حذف قاعة
+function deleteRoom(index) {
+  const roomName = rooms[index];
+  if (confirm(`هل أنت متأكد من حذف القاعة "${roomName}"؟`)) {
+    rooms.splice(index, 1);
+    saveRooms();
+    displayRooms();
+    alert(`✅ تم حذف القاعة "${roomName}" بنجاح`);
+  }
+}
+
+// تهيئة النظام عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', function() {
+  loadRooms();
+  document.getElementById('room-form').addEventListener('submit', addRoom);
+});
+
 // إظهار زر القائمة في الشاشات الصغيرة وتثبيت موقعه في أعلى يسار الصفحة
 function toggleMenuButton() {
 	var btn = document.getElementById('menu-toggle');

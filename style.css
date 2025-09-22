@@ -368,3 +368,80 @@ table td:hover{background:#e6f0ff; cursor:pointer;}
 [data-time]{background:#f0f0f0;}
 [data-time]:nth-child(even){background:#d9e6f2;}
 input[type="text"],select{padding:7px 10px;border-radius:6px;border:1px solid #ccc;margin-right:10px;min-width:200px;}
+
+/* تحسينات تفاعلية للنظام الجديد */
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15) !important;
+  transition: all 0.3s ease;
+}
+
+.quick-actions button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* تحسين عرض الجداول */
+table td.reserved {
+  background: #ffeb3b !important;
+  border: 2px solid #fbc02d;
+}
+
+table td.available:hover {
+  background: #c8e6c9 !important;
+  cursor: pointer;
+}
+
+/* تحسين النماذج */
+form {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+input[type="text"]:focus, select:focus {
+  border-color: #1b3767;
+  box-shadow: 0 0 0 2px rgba(27, 55, 103, 0.2);
+  outline: none;
+}
+
+button {
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* تحسين قائمة القاعات */
+#room-list li {
+  transition: all 0.3s ease;
+}
+
+#room-list li:hover {
+  transform: translateX(-5px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* تحسين الاستجابة للشاشات الصغيرة */
+@media (max-width: 768px) {
+  .stats-cards {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .quick-actions > div {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .stat-card {
+    padding: 15px;
+  }
+}
+
+/* تحسين التحديد */
+::selection {
+  background: rgba(27, 55, 103, 0.3);
+}

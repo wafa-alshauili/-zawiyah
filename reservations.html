@@ -73,6 +73,241 @@
 
 <script src="script.js"></script>
 <script>
+// نظام الحجوزات
+let currentWeek = 0;
+let selectedRoom = null;
+let reservations = [];
+
+// تحميل البيانات من localStorage
+function loadData() {
+  // تحميل القاعات
+  const savedRooms = localStorage.getItem('school_rooms');
+  const rooms = savedRooms ? JSON.parse(savedRooms) : ['المختبر', 'قاعة الحاسوب', 'المكتبة', 'القاعة الرئيسية'];
+  
+  // ملء قائمة القاعات
+  const roomSelect = document.getElementById('room-select');
+  roomSelect.innerHTML = '<option value="">-- اختر القاعة --</option>';
+  rooms.forEach(room => {
+    const option = document.createElement('option');
+    option.value = room;
+    option.textContent = room;
+    roomSelect.appendChild(option);
+  });
+  
+  // تحميل الحجوزات
+  const savedReservations = localStorage.getItem('school_reservations');
+  reservations = savedReservations ? JSON.parse(savedReservations) : [];
+}
+
+// حفظ الحجوزات
+function saveReservations() {
+  localStorage.setItem('school_reservations', JSON.stringify(reservations));
+}
+
+// حساب تواريخ الأسبوع
+function getWeekDates(weekOffset = 0) {
+  const today = new Date();
+  const currentDay = today.getDay(); // 0 = أحد, 1 = إثنين, إلخ
+  const sunday = new Date(today);
+  sunday.setDate(today.getDate() - currentDay + (weekOffset * 7));
+  
+  const dates = [];
+  for (let i = 0; i < 5; i++) { // أحد إلى خميس
+    const date = new Date(sunday);
+    date.setDate(sunday.getDate() + i);
+    dates.push(date);
+  }
+  return dates;
+}
+
+// تحديث عرض الأسبوع
+function updateWeekDisplay() {
+  const dates = getWeekDates(currentWeek);
+  const weekRangeSpan = document.getElementById('week-range');
+  
+  const startDate = dates[0].toLocaleDateString('ar-SA');
+  const endDate = dates[4].toLocaleDateString('ar-SA');
+  weekRangeSpan.textContent = `${startDate} - ${endDate}`;
+  
+  // تحديث تواريخ الأيام في الجدول
+  const daySpans = document.querySelectorAll('.date-span');
+  daySpans.forEach((span, index) => {
+    if (dates[index]) {
+      span.textContent = dates[index].toLocaleDateString('ar-SA', {
+        month: 'numeric',
+        day: 'numeric'
+      });
+    }
+  });
+  
+  // تحديث حقل التاريخ
+  document.getElementById('week-date').value = dates[0].toISOString().split('T')[0];
+}
+
+// عرض جدول الحجوزات
+function showReservationTable() {
+  if (!selectedRoom) return;
+  
+  document.getElementById('room-warning').style.display = 'none';
+  document.getElementById('reservation-table').style.display = 'table';
+  
+  // مسح الحجوزات السابقة
+  const cells = document.querySelectorAll('td[data-time]');
+  cells.forEach(cell => {
+    cell.innerHTML = '';
+    cell.style.backgroundColor = '';
+    cell.style.cursor = 'pointer';
+    cell.onclick = () => bookSlot(cell);
+  });
+  
+  // عرض الحجوزات الحالية
+  const weekDates = getWeekDates(currentWeek);
+  reservations.forEach(reservation => {
+    if (reservation.room === selectedRoom) {
+      const reservationDate = new Date(reservation.date);
+      const dayIndex = weekDates.findIndex(date => 
+        date.toDateString() === reservationDate.toDateString()
+      );
+      
+      if (dayIndex !== -1) {
+        const cell = document.querySelector(`td[data-time="${reservation.timeSlot}"]`);
+        if (cell) {
+          cell.innerHTML = `
+            <div style="background: #e3f2fd; padding: 5px; border-radius: 3px; font-size: 0.85em;">
+              <div style="font-weight: bold; color: #1565c0;">${reservation.teacher}</div>
+              <div style="color: #1976d2;">${reservation.subject}</div>
+              <button onclick="cancelReservation('${reservation.id}')" 
+                      style="background: #f44336; color: white; border: none; padding: 2px 6px; border-radius: 2px; font-size: 0.7em; margin-top: 3px; cursor: pointer;">
+                إلغاء
+              </button>
+            </div>
+          `;
+          cell.style.backgroundColor = '#f3e5f5';
+          cell.onclick = null;
+        }
+      }
+    }
+  });
+}
+
+// حجز فترة زمنية
+function bookSlot(cell) {
+  if (cell.innerHTML.trim()) return; // محجوز بالفعل
+  
+  const teacher = prompt('اسم المعلم/المعلمة:');
+  if (!teacher) return;
+  
+  const subject = prompt('اسم المادة أو النشاط:');
+  if (!subject) return;
+  
+  const timeSlot = cell.getAttribute('data-time');
+  const weekDates = getWeekDates(currentWeek);
+  
+  // تحديد التاريخ حسب اليوم
+  let dayIndex;
+  if (timeSlot.startsWith('sun')) dayIndex = 0;
+  else if (timeSlot.startsWith('mon')) dayIndex = 1;
+  else if (timeSlot.startsWith('tue')) dayIndex = 2;
+  else if (timeSlot.startsWith('wed')) dayIndex = 3;
+  else if (timeSlot.startsWith('thu')) dayIndex = 4;
+  
+  const reservation = {
+    id: Date.now().toString(),
+    room: selectedRoom,
+    teacher: teacher,
+    subject: subject,
+    timeSlot: timeSlot,
+    date: weekDates[dayIndex].toISOString(),
+    createdAt: new Date().toISOString()
+  };
+  
+  reservations.push(reservation);
+  saveReservations();
+  showReservationTable();
+  
+  alert(`✅ تم حجز القاعة بنجاح!\nالمعلم: ${teacher}\nالمادة: ${subject}`);
+}
+
+// إلغاء حجز
+function cancelReservation(reservationId) {
+  if (confirm('هل أنت متأكد من إلغاء هذا الحجز؟')) {
+    reservations = reservations.filter(r => r.id !== reservationId);
+    saveReservations();
+    showReservationTable();
+    alert('✅ تم إلغاء الحجز بنجاح');
+  }
+}
+
+// تصدير البيانات
+function exportData() {
+  if (!selectedRoom) {
+    alert('⚠️ يرجى اختيار قاعة أولاً');
+    return;
+  }
+  
+  const roomReservations = reservations.filter(r => r.room === selectedRoom);
+  const csvContent = "data:text/csv;charset=utf-8," + 
+    "التاريخ,اليوم,الفترة,المعلم,المادة\n" +
+    roomReservations.map(r => {
+      const date = new Date(r.date);
+      const dayName = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'][date.getDay()];
+      return `${date.toLocaleDateString('ar-SA')},${dayName},${r.timeSlot},${r.teacher},${r.subject}`;
+    }).join("\n");
+  
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", `حجوزات_${selectedRoom}_${new Date().toLocaleDateString('ar-SA')}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// تهيئة النظام
+document.addEventListener('DOMContentLoaded', function() {
+  loadData();
+  updateWeekDisplay();
+  
+  // أحداث التحكم في الأسبوع
+  document.getElementById('prev-week').onclick = () => {
+    currentWeek--;
+    updateWeekDisplay();
+    if (selectedRoom) showReservationTable();
+  };
+  
+  document.getElementById('next-week').onclick = () => {
+    currentWeek++;
+    updateWeekDisplay();
+    if (selectedRoom) showReservationTable();
+  };
+  
+  // تغيير القاعة
+  document.getElementById('room-select').onchange = function() {
+    selectedRoom = this.value;
+    if (selectedRoom) {
+      showReservationTable();
+    } else {
+      document.getElementById('reservation-table').style.display = 'none';
+      document.getElementById('room-warning').style.display = 'block';
+      document.getElementById('room-warning').textContent = '⚠️ يرجى اختيار قاعة لعرض جدول الحجوزات';
+    }
+  };
+  
+  // تغيير تاريخ الأسبوع
+  document.getElementById('week-date').onchange = function() {
+    const selectedDate = new Date(this.value);
+    const today = new Date();
+    const diffTime = selectedDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    currentWeek = Math.floor(diffDays / 7);
+    updateWeekDisplay();
+    if (selectedRoom) showReservationTable();
+  };
+  
+  // تصدير البيانات
+  document.getElementById('export-btn').onclick = exportData;
+});
+
 // إظهار زر القائمة في الشاشات الصغيرة وتثبيت موقعه في أعلى يسار الصفحة
 function toggleMenuButton() {
 	var btn = document.getElementById('menu-toggle');
