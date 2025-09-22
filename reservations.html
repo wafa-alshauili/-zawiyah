@@ -189,15 +189,16 @@ function saveReservations() {
   localStorage.setItem('school_reservations', JSON.stringify(reservations));
 }
 
-// حساب تواريخ الأسبوع
+// حساب تواريخ الأسبوع (يبدأ بالأحد - التقويم الميلادي)
 function getWeekDates(weekOffset = 0) {
   const today = new Date();
-  const currentDay = today.getDay(); // 0 = أحد, 1 = إثنين, إلخ
+  const currentDay = today.getDay(); // 0 = أحد, 1 = إثنين, 2 = ثلاثاء, إلخ
   const sunday = new Date(today);
+  // حساب تاريخ يوم الأحد من الأسبوع المطلوب
   sunday.setDate(today.getDate() - currentDay + (weekOffset * 7));
   
   const dates = [];
-  for (let i = 0; i < 5; i++) { // أحد إلى خميس
+  for (let i = 0; i < 5; i++) { // من الأحد إلى الخميس (5 أيام دراسية)
     const date = new Date(sunday);
     date.setDate(sunday.getDate() + i);
     dates.push(date);
@@ -210,18 +211,18 @@ function updateWeekDisplay() {
   const dates = getWeekDates(currentWeek);
   const weekRangeSpan = document.getElementById('week-range');
   
-  const startDate = dates[0].toLocaleDateString('ar-SA');
-  const endDate = dates[4].toLocaleDateString('ar-SA');
+  // استخدام التقويم الميلادي
+  const startDate = dates[0].toLocaleDateString('en-GB').split('/').reverse().join('/');
+  const endDate = dates[4].toLocaleDateString('en-GB').split('/').reverse().join('/');
   weekRangeSpan.textContent = `${startDate} - ${endDate}`;
   
   // تحديث تواريخ الأيام في الجدول
   const daySpans = document.querySelectorAll('.date-span');
   daySpans.forEach((span, index) => {
     if (dates[index]) {
-      span.textContent = dates[index].toLocaleDateString('ar-SA', {
-        month: 'numeric',
-        day: 'numeric'
-      });
+      const day = dates[index].getDate();
+      const month = dates[index].getMonth() + 1;
+      span.textContent = `${day}/${month}`;
     }
   });
   
@@ -314,13 +315,17 @@ function exportData() {
       const grade = r.grade ? `الصف ${r.grade}` : '';
       const section = r.section ? `الشعبة ${r.section}` : '';
       const subjectType = r.subjectType === 'elective' ? 'اختيارية' : 'أساسية';
-      return `${date.toLocaleDateString('ar-SA')},${dayName},${r.timeSlot},${r.teacher},${r.phone || ''},${grade},${section},${r.subject},${subjectType}`;
+      // استخدام التقويم الميلادي
+      const gregorianDate = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+      return `${gregorianDate},${dayName},${r.timeSlot},${r.teacher},${r.phone || ''},${grade},${section},${r.subject},${subjectType}`;
     }).join("\n");
   
   const encodedUri = encodeURI(csvContent);
   const link = document.createElement("a");
   link.setAttribute("href", encodedUri);
-  link.setAttribute("download", `حجوزات_${selectedRoom}_${new Date().toLocaleDateString('ar-SA')}.csv`);
+  const today = new Date();
+  const todayFormatted = `${today.getDate()}-${today.getMonth() + 1}-${today.getFullYear()}`;
+  link.setAttribute("download", `حجوزات_${selectedRoom}_${todayFormatted}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -586,11 +591,13 @@ function showReservationDetails(reservation) {
     details += `📖 نوع المادة: ${typeText}\n`;
   }
   
-  const createdDate = new Date(reservation.createdAt).toLocaleString('ar-SA');
-  details += `📅 تاريخ الحجز: ${createdDate}\n`;
+  const createdDate = new Date(reservation.createdAt);
+  const createdFormatted = `${createdDate.getDate()}/${createdDate.getMonth() + 1}/${createdDate.getFullYear()} ${createdDate.getHours()}:${createdDate.getMinutes().toString().padStart(2, '0')}`;
+  details += `📅 تاريخ الحجز: ${createdFormatted}\n`;
   
-  const sessionDate = new Date(reservation.date).toLocaleDateString('ar-SA');
-  details += `🗓️ تاريخ الجلسة: ${sessionDate}`;
+  const sessionDate = new Date(reservation.date);
+  const sessionFormatted = `${sessionDate.getDate()}/${sessionDate.getMonth() + 1}/${sessionDate.getFullYear()}`;
+  details += `🗓️ تاريخ الجلسة: ${sessionFormatted}`;
   
   alert(details);
 }
