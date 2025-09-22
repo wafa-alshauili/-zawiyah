@@ -37,6 +37,7 @@
 <form id="room-form">
 <input type="text" id="room-name" placeholder="اسم القاعة" required>
 <button type="submit">➕ إضافة قاعة</button>
+<button type="button" onclick="addMissingRooms()" style="background: #17a2b8; color: white; margin-right: 10px;">🆕 إضافة القاعات الجديدة</button>
 <button type="button" onclick="restoreRoomsBackup()" style="background: #ffc107; color: #212529; margin-right: 10px;">🔄 استعادة النسخة الاحتياطية</button>
 <button type="button" onclick="resetToDefault()" style="background: #6c757d; color: white; margin-right: 10px;">⚙️ إعادة تعيين</button>
 </form>
@@ -81,6 +82,9 @@ function loadRooms() {
     if (savedRooms) {
       rooms = JSON.parse(savedRooms);
       console.log('تم تحميل القاعات من localStorage:', rooms);
+      
+      // التحقق من وجود القاعات الجديدة وإضافتها إذا لم تكن موجودة
+      checkAndAddNewRooms();
     } else {
       console.log('لا توجد قاعات محفوظة، إنشاء قاعات افتراضية...');
       // قاعات افتراضية
@@ -102,6 +106,25 @@ function loadRooms() {
   }
   
   displayRooms();
+}
+
+// التحقق من وجود القاعات الجديدة وإضافتها
+function checkAndAddNewRooms() {
+  const newRooms = ['القاعة الذكية', 'غرفة صفية'];
+  let added = false;
+  
+  newRooms.forEach(room => {
+    if (!rooms.includes(room)) {
+      rooms.push(room);
+      added = true;
+      console.log(`تمت إضافة قاعة جديدة: ${room}`);
+    }
+  });
+  
+  if (added) {
+    saveRooms();
+    alert('✅ تم إضافة قاعات جديدة: القاعة الذكية، غرفة صفية');
+  }
 }
 
 // حفظ القاعات في localStorage
@@ -211,6 +234,27 @@ document.addEventListener('DOMContentLoaded', function() {
   loadRooms();
   document.getElementById('room-form').addEventListener('submit', addRoom);
 });
+
+// إضافة القاعات المفقودة يدوياً
+function addMissingRooms() {
+  const newRooms = ['القاعة الذكية', 'غرفة صفية'];
+  let addedRooms = [];
+  
+  newRooms.forEach(room => {
+    if (!rooms.includes(room)) {
+      rooms.push(room);
+      addedRooms.push(room);
+    }
+  });
+  
+  if (addedRooms.length > 0) {
+    saveRooms();
+    displayRooms();
+    alert(`✅ تمت إضافة القاعات التالية:\n${addedRooms.join('\n')}`);
+  } else {
+    alert('ℹ️ جميع القاعات موجودة بالفعل');
+  }
+}
 
 // استعادة النسخة الاحتياطية
 function restoreRoomsBackup() {
