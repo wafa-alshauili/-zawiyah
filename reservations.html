@@ -44,6 +44,91 @@
 </select>
 
 <div id="room-warning" style="display:none;color:#b52b2b;background:#ffeaea;padding:10px 20px;margin:10px 0 0 0;border-radius:7px;font-weight:bold;text-align:center;"></div>
+
+<!-- نموذج الحجز المتقدم -->
+<div id="booking-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000;">
+  <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <h3 id="booking-modal-title" style="color: #1b3767; margin: 0;">📝 حجز جديد</h3>
+      <button onclick="closeBookingModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">×</button>
+    </div>
+    
+    <form id="booking-form" onsubmit="submitBooking(event)">
+      <div style="margin-bottom: 15px;">
+        <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #1b3767;">👨‍🏫 اسم المعلم/المعلمة:</label>
+        <input type="text" id="teacher-name" required style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-size: 16px;" placeholder="أدخل اسم المعلم">
+      </div>
+      
+      <div style="margin-bottom: 15px;">
+        <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #1b3767;">📞 رقم الهاتف:</label>
+        <input type="tel" id="teacher-phone" required style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-size: 16px;" placeholder="مثال: 99123456">
+      </div>
+      
+      <div style="margin-bottom: 15px;">
+        <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #1b3767;">🎓 الصف:</label>
+        <select id="grade-select" required style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-size: 16px;" onchange="updateSections()">
+          <option value="">-- اختر الصف --</option>
+          <option value="5">الصف الخامس</option>
+          <option value="6">الصف السادس</option>
+          <option value="7">الصف السابع</option>
+          <option value="8">الصف الثامن</option>
+          <option value="9">الصف التاسع</option>
+          <option value="10">الصف العاشر</option>
+          <option value="11">الصف الحادي عشر</option>
+          <option value="12">الصف الثاني عشر</option>
+        </select>
+      </div>
+      
+      <div id="section-container" style="margin-bottom: 15px; display: none;">
+        <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #1b3767;">📚 الشعبة:</label>
+        <select id="section-select" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-size: 16px;">
+          <option value="">-- اختر الشعبة --</option>
+        </select>
+      </div>
+      
+      <div style="margin-bottom: 15px;">
+        <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #1b3767;">📖 نوع المادة:</label>
+        <select id="subject-type" required style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-size: 16px;" onchange="updateSubjectOptions()">
+          <option value="">-- اختر نوع المادة --</option>
+          <option value="regular">مادة أساسية</option>
+          <option value="elective">مادة اختيارية (للصف 11 و 12 فقط)</option>
+        </select>
+      </div>
+      
+      <div id="regular-subject-container" style="margin-bottom: 15px; display: none;">
+        <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #1b3767;">📚 المادة:</label>
+        <select id="regular-subject" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-size: 16px;">
+          <option value="">-- اختر المادة --</option>
+          <option value="اللغة العربية">اللغة العربية</option>
+          <option value="اللغة الإنجليزية">اللغة الإنجليزية</option>
+          <option value="الرياضيات">الرياضيات</option>
+          <option value="العلوم">العلوم</option>
+          <option value="الدراسات الاجتماعية">الدراسات الاجتماعية</option>
+          <option value="التربية الإسلامية">التربية الإسلامية</option>
+          <option value="تقنية المعلومات">تقنية المعلومات</option>
+          <option value="التربية الرياضية">التربية الرياضية</option>
+          <option value="التربية الفنية">التربية الفنية</option>
+          <option value="التربية الموسيقية">التربية الموسيقية</option>
+        </select>
+      </div>
+      
+      <div id="elective-subject-container" style="margin-bottom: 15px; display: none;">
+        <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #1b3767;">✏️ اسم المادة الاختيارية:</label>
+        <input type="text" id="elective-subject" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-size: 16px;" placeholder="أدخل اسم المادة الاختيارية">
+      </div>
+      
+      <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+        <button type="submit" style="background: linear-gradient(135deg, #28a745, #20c997); color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold;">
+          ✅ تأكيد الحجز
+        </button>
+        <button type="button" onclick="closeBookingModal()" style="background: #6c757d; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 16px;">
+          ❌ إلغاء
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <table id="reservation-table" style="display:none; margin-top:20px;">
 <thead>
 <tr>
@@ -172,13 +257,19 @@ function showReservationTable() {
       if (dayIndex !== -1) {
         const cell = document.querySelector(`td[data-time="${reservation.timeSlot}"]`);
         if (cell) {
+          const gradeText = reservation.grade ? `الصف ${reservation.grade}` : '';
+          const sectionText = reservation.section ? `الشعبة ${reservation.section}` : '';
+          const phoneText = reservation.phone ? `📱 ${reservation.phone}` : '';
+          
           cell.innerHTML = `
-            <div style="background: #e3f2fd; padding: 5px; border-radius: 3px; font-size: 0.85em;">
-              <div style="font-weight: bold; color: #1565c0;">${reservation.teacher}</div>
-              <div style="color: #1976d2;">${reservation.subject}</div>
-              <button onclick="cancelReservation('${reservation.id}')" 
-                      style="background: #f44336; color: white; border: none; padding: 2px 6px; border-radius: 2px; font-size: 0.7em; margin-top: 3px; cursor: pointer;">
-                إلغاء
+            <div style="background: #e3f2fd; padding: 8px; border-radius: 4px; font-size: 0.85em; line-height: 1.3;">
+              <div style="font-weight: bold; color: #1565c0; margin-bottom: 2px;">👨‍🏫 ${reservation.teacher}</div>
+              <div style="color: #1976d2; margin-bottom: 2px;">📚 ${reservation.subject}</div>
+              ${gradeText && sectionText ? `<div style="color: #424242; font-size: 0.8em; margin-bottom: 2px;">🎓 ${gradeText} - ${sectionText}</div>` : ''}
+              ${phoneText ? `<div style="color: #424242; font-size: 0.8em; margin-bottom: 3px;">${phoneText}</div>` : ''}
+              <button onclick="showReservationOptions('${reservation.id}', '${reservation.phone || ''}')" 
+                      style="background: #ff9800; color: white; border: none; padding: 3px 8px; border-radius: 3px; font-size: 0.75em; margin-top: 2px; cursor: pointer; width: 100%;">
+                ⚙️ إدارة الحجز
               </button>
             </div>
           `;
@@ -194,38 +285,7 @@ function showReservationTable() {
 function bookSlot(cell) {
   if (cell.innerHTML.trim()) return; // محجوز بالفعل
   
-  const teacher = prompt('اسم المعلم/المعلمة:');
-  if (!teacher) return;
-  
-  const subject = prompt('اسم المادة أو النشاط:');
-  if (!subject) return;
-  
-  const timeSlot = cell.getAttribute('data-time');
-  const weekDates = getWeekDates(currentWeek);
-  
-  // تحديد التاريخ حسب اليوم
-  let dayIndex;
-  if (timeSlot.startsWith('sun')) dayIndex = 0;
-  else if (timeSlot.startsWith('mon')) dayIndex = 1;
-  else if (timeSlot.startsWith('tue')) dayIndex = 2;
-  else if (timeSlot.startsWith('wed')) dayIndex = 3;
-  else if (timeSlot.startsWith('thu')) dayIndex = 4;
-  
-  const reservation = {
-    id: Date.now().toString(),
-    room: selectedRoom,
-    teacher: teacher,
-    subject: subject,
-    timeSlot: timeSlot,
-    date: weekDates[dayIndex].toISOString(),
-    createdAt: new Date().toISOString()
-  };
-  
-  reservations.push(reservation);
-  saveReservations();
-  showReservationTable();
-  
-  alert(`✅ تم حجز القاعة بنجاح!\nالمعلم: ${teacher}\nالمادة: ${subject}`);
+  openBookingModal(cell);
 }
 
 // إلغاء حجز
@@ -247,11 +307,14 @@ function exportData() {
   
   const roomReservations = reservations.filter(r => r.room === selectedRoom);
   const csvContent = "data:text/csv;charset=utf-8," + 
-    "التاريخ,اليوم,الفترة,المعلم,المادة\n" +
+    "التاريخ,اليوم,الفترة,المعلم,رقم الهاتف,الصف,الشعبة,المادة,نوع المادة\n" +
     roomReservations.map(r => {
       const date = new Date(r.date);
       const dayName = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'][date.getDay()];
-      return `${date.toLocaleDateString('ar-SA')},${dayName},${r.timeSlot},${r.teacher},${r.subject}`;
+      const grade = r.grade ? `الصف ${r.grade}` : '';
+      const section = r.section ? `الشعبة ${r.section}` : '';
+      const subjectType = r.subjectType === 'elective' ? 'اختيارية' : 'أساسية';
+      return `${date.toLocaleDateString('ar-SA')},${dayName},${r.timeSlot},${r.teacher},${r.phone || ''},${grade},${section},${r.subject},${subjectType}`;
     }).join("\n");
   
   const encodedUri = encodeURI(csvContent);
@@ -261,6 +324,275 @@ function exportData() {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+}
+
+// دوال النموذج المتقدم
+let currentBookingCell = null;
+
+function openBookingModal(cell) {
+  currentBookingCell = cell;
+  const modal = document.getElementById('booking-modal');
+  const title = document.getElementById('booking-modal-title');
+  
+  // استخراج معلومات الفترة والتاريخ
+  const timeSlot = cell.getAttribute('data-time');
+  const timeText = getTimeSlotText(timeSlot);
+  const dayText = getDayText(timeSlot);
+  
+  title.textContent = `📝 حجز ${selectedRoom} - ${dayText} ${timeText}`;
+  modal.style.display = 'block';
+  
+  // إعادة تعيين النموذج
+  document.getElementById('booking-form').reset();
+  document.getElementById('section-container').style.display = 'none';
+  document.getElementById('regular-subject-container').style.display = 'none';
+  document.getElementById('elective-subject-container').style.display = 'none';
+}
+
+function closeBookingModal() {
+  document.getElementById('booking-modal').style.display = 'none';
+  currentBookingCell = null;
+}
+
+function updateSections() {
+  const gradeSelect = document.getElementById('grade-select');
+  const sectionContainer = document.getElementById('section-container');
+  const sectionSelect = document.getElementById('section-select');
+  const subjectType = document.getElementById('subject-type');
+  
+  const grade = gradeSelect.value;
+  
+  if (grade) {
+    sectionContainer.style.display = 'block';
+    sectionSelect.innerHTML = '<option value="">-- اختر الشعبة --</option>';
+    
+    let sectionCount;
+    if (grade >= 5 && grade <= 10) {
+      sectionCount = 3; // 3 شعب للصفوف 5-10
+    } else if (grade >= 11 && grade <= 12) {
+      sectionCount = 6; // 6 شعب للصفوف 11-12
+    }
+    
+    for (let i = 1; i <= sectionCount; i++) {
+      const option = document.createElement('option');
+      option.value = i;
+      option.textContent = `الشعبة ${i}`;
+      sectionSelect.appendChild(option);
+    }
+    
+    // تحديث خيارات نوع المادة
+    subjectType.innerHTML = '<option value="">-- اختر نوع المادة --</option>';
+    subjectType.innerHTML += '<option value="regular">مادة أساسية</option>';
+    
+    if (grade >= 11 && grade <= 12) {
+      subjectType.innerHTML += '<option value="elective">مادة اختيارية</option>';
+    }
+  } else {
+    sectionContainer.style.display = 'none';
+  }
+}
+
+function updateSubjectOptions() {
+  const subjectType = document.getElementById('subject-type').value;
+  const regularContainer = document.getElementById('regular-subject-container');
+  const electiveContainer = document.getElementById('elective-subject-container');
+  
+  // إخفاء كلا الحاويتين
+  regularContainer.style.display = 'none';
+  electiveContainer.style.display = 'none';
+  
+  if (subjectType === 'regular') {
+    regularContainer.style.display = 'block';
+  } else if (subjectType === 'elective') {
+    electiveContainer.style.display = 'block';
+  }
+}
+
+function submitBooking(event) {
+  event.preventDefault();
+  
+  if (!currentBookingCell) return;
+  
+  // جمع البيانات من النموذج
+  const teacherName = document.getElementById('teacher-name').value.trim();
+  const teacherPhone = document.getElementById('teacher-phone').value.trim();
+  const grade = document.getElementById('grade-select').value;
+  const section = document.getElementById('section-select').value;
+  const subjectType = document.getElementById('subject-type').value;
+  
+  let subject;
+  if (subjectType === 'regular') {
+    subject = document.getElementById('regular-subject').value;
+  } else if (subjectType === 'elective') {
+    subject = document.getElementById('elective-subject').value.trim();
+  }
+  
+  // التحقق من البيانات
+  if (!teacherName || !teacherPhone || !grade || !section || !subject) {
+    alert('⚠️ يرجى ملء جميع الحقول المطلوبة');
+    return;
+  }
+  
+  // التحقق من رقم الهاتف
+  const phoneRegex = /^[0-9]{8}$/;
+  if (!phoneRegex.test(teacherPhone)) {
+    alert('⚠️ يرجى إدخال رقم هاتف صحيح (8 أرقام)');
+    return;
+  }
+  
+  const timeSlot = currentBookingCell.getAttribute('data-time');
+  const weekDates = getWeekDates(currentWeek);
+  
+  // تحديد التاريخ حسب اليوم
+  let dayIndex;
+  if (timeSlot.startsWith('sun')) dayIndex = 0;
+  else if (timeSlot.startsWith('mon')) dayIndex = 1;
+  else if (timeSlot.startsWith('tue')) dayIndex = 2;
+  else if (timeSlot.startsWith('wed')) dayIndex = 3;
+  else if (timeSlot.startsWith('thu')) dayIndex = 4;
+  
+  // إنشاء الحجز الجديد
+  const reservation = {
+    id: Date.now().toString(),
+    room: selectedRoom,
+    teacher: teacherName,
+    phone: teacherPhone,
+    grade: grade,
+    section: section,
+    subject: subject,
+    subjectType: subjectType,
+    timeSlot: timeSlot,
+    date: weekDates[dayIndex].toISOString(),
+    createdAt: new Date().toISOString()
+  };
+  
+  reservations.push(reservation);
+  saveReservations();
+  showReservationTable();
+  closeBookingModal();
+  
+  alert(`✅ تم حجز القاعة بنجاح!\n👨‍🏫 المعلم: ${teacherName}\n📱 الهاتف: ${teacherPhone}\n🎓 الصف: ${grade} - الشعبة ${section}\n📚 المادة: ${subject}`);
+}
+
+function getTimeSlotText(timeSlot) {
+  const timeMap = {
+    '1': 'الحصة الأولى (7:30 - 8:15)',
+    '2': 'الحصة الثانية (8:15 - 9:00)',
+    '3': 'الحصة الثالثة (9:00 - 9:45)',
+    '4': 'الحصة الرابعة (10:15 - 11:00)',
+    '5': 'الحصة الخامسة (11:00 - 11:45)',
+    '6': 'الحصة السادسة (11:45 - 12:30)',
+    '7': 'الحصة السابعة (1:00 - 1:45)'
+  };
+  
+  const period = timeSlot.slice(-1);
+  return timeMap[period] || `الحصة ${period}`;
+}
+
+function getDayText(timeSlot) {
+  if (timeSlot.startsWith('sun')) return 'الأحد';
+  if (timeSlot.startsWith('mon')) return 'الإثنين';
+  if (timeSlot.startsWith('tue')) return 'الثلاثاء';
+  if (timeSlot.startsWith('wed')) return 'الأربعاء';
+  if (timeSlot.startsWith('thu')) return 'الخميس';
+  return '';
+}
+
+// إدارة الحجوزات باستخدام رقم الهاتف
+function showReservationOptions(reservationId, phoneNumber) {
+  const reservation = reservations.find(r => r.id === reservationId);
+  if (!reservation) {
+    alert('❌ لم يتم العثور على الحجز');
+    return;
+  }
+  
+  let options = `🔧 إدارة الحجز:\n`;
+  options += `👨‍🏫 المعلم: ${reservation.teacher}\n`;
+  options += `📚 المادة: ${reservation.subject}\n`;
+  if (reservation.grade && reservation.section) {
+    options += `🎓 الصف: ${reservation.grade} - الشعبة ${reservation.section}\n`;
+  }
+  if (reservation.phone) {
+    options += `📱 الهاتف: ${reservation.phone}\n`;
+  }
+  options += `\nاختر إجراءً:\n`;
+  options += `1️⃣ إلغاء الحجز\n`;
+  options += `2️⃣ تعديل الحجز\n`;
+  options += `3️⃣ عرض التفاصيل\n`;
+  options += `❌ إغلاق`;
+  
+  const choice = prompt(options + '\n\nأدخل رقم الخيار (1-3):');
+  
+  if (choice === '1') {
+    cancelReservationWithPhone(reservationId, phoneNumber);
+  } else if (choice === '2') {
+    editReservation(reservationId, phoneNumber);
+  } else if (choice === '3') {
+    showReservationDetails(reservation);
+  }
+}
+
+function cancelReservationWithPhone(reservationId, phoneNumber) {
+  const reservation = reservations.find(r => r.id === reservationId);
+  
+  if (phoneNumber && reservation.phone) {
+    const enteredPhone = prompt(`🔐 للتأكيد، أدخل رقم الهاتف المسجل:\n(الرقم المطلوب: ${reservation.phone})`);
+    
+    if (enteredPhone !== reservation.phone) {
+      alert('❌ رقم الهاتف غير صحيح. لا يمكن إلغاء الحجز.');
+      return;
+    }
+  }
+  
+  if (confirm(`هل أنت متأكد من إلغاء هذا الحجز؟\n\n👨‍🏫 المعلم: ${reservation.teacher}\n📚 المادة: ${reservation.subject}`)) {
+    reservations = reservations.filter(r => r.id !== reservationId);
+    saveReservations();
+    showReservationTable();
+    alert('✅ تم إلغاء الحجز بنجاح');
+  }
+}
+
+function editReservation(reservationId, phoneNumber) {
+  const reservation = reservations.find(r => r.id === reservationId);
+  
+  if (phoneNumber && reservation.phone) {
+    const enteredPhone = prompt(`🔐 للتأكيد، أدخل رقم الهاتف المسجل:\n(الرقم المطلوب: ${reservation.phone})`);
+    
+    if (enteredPhone !== reservation.phone) {
+      alert('❌ رقم الهاتف غير صحيح. لا يمكن تعديل الحجز.');
+      return;
+    }
+  }
+  
+  alert('🔄 ميزة التعديل ستتوفر قريباً. يمكنك حالياً إلغاء الحجز وإنشاء حجز جديد.');
+}
+
+function showReservationDetails(reservation) {
+  let details = `📋 تفاصيل الحجز:\n\n`;
+  details += `🏢 القاعة: ${reservation.room}\n`;
+  details += `👨‍🏫 المعلم: ${reservation.teacher}\n`;
+  details += `📚 المادة: ${reservation.subject}\n`;
+  
+  if (reservation.grade && reservation.section) {
+    details += `🎓 الصف: ${reservation.grade} - الشعبة ${reservation.section}\n`;
+  }
+  
+  if (reservation.phone) {
+    details += `📱 الهاتف: ${reservation.phone}\n`;
+  }
+  
+  if (reservation.subjectType) {
+    const typeText = reservation.subjectType === 'elective' ? 'اختيارية' : 'أساسية';
+    details += `📖 نوع المادة: ${typeText}\n`;
+  }
+  
+  const createdDate = new Date(reservation.createdAt).toLocaleString('ar-SA');
+  details += `📅 تاريخ الحجز: ${createdDate}\n`;
+  
+  const sessionDate = new Date(reservation.date).toLocaleDateString('ar-SA');
+  details += `🗓️ تاريخ الجلسة: ${sessionDate}`;
+  
+  alert(details);
 }
 
 // تهيئة النظام
