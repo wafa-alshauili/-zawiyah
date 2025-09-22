@@ -1,0 +1,370 @@
+.site-title {
+	font-family: 'Arabic Poetry', 'Amiri', 'Diwan', serif !important;
+	font-size: 6em !important;
+	font-weight: bold;
+	color: #1b3767;
+	letter-spacing: 1px;
+	text-shadow: 0 2px 12px #dbe3f7;
+}
+/* خط عنوان الموقع دائماً */
+.site-title {
+	font-family: 'Arabic Poetry', 'Amiri', 'Diwan', serif !important;
+	font-size: 6em !important;
+	font-weight: bold;
+	color: #1b3767;
+	letter-spacing: 1px;
+	text-shadow: 0 2px 12px #dbe3f7;
+}
+
+/* القوائم المنسدلة فقط في الشاشات الصغيرة */
+@media (max-width:768px) {
+	.nav-links {
+		display: none;
+		flex-direction: column;
+		gap: 0;
+		background: #fff;
+		width: 65vw;
+		max-width: 180px;
+		position: absolute;
+		top: 60px;
+		right: 5vw;
+		box-shadow: 0 2px 12px #1b376722;
+		border-radius: 8px;
+		border: 1px solid #e3e9f7;
+		z-index: 1000;
+		padding: 6px 0;
+		opacity: 0;
+		transform: translateY(-20px);
+		pointer-events: none;
+		transition: opacity 0.35s cubic-bezier(.4,0,.2,1), transform 0.35s cubic-bezier(.4,0,.2,1);
+		font-family: 'Times New Roman', Times, serif !important;
+	}
+	.nav-links.show {
+		display: flex;
+		opacity: 1;
+		transform: translateY(0);
+		pointer-events: auto;
+	}
+	.nav-links li {
+		text-align: center;
+		padding: 6px 0;
+		width: 100%;
+		border-bottom: 1.5px solid #b2c6e6;
+		margin: 0 8px;
+	}
+	.nav-links li:last-child {
+		border-bottom: none;
+	}
+	.nav-links li a {
+		color: #1b3767 !important;
+		font-size: 1em;
+		font-weight: 500;
+		text-decoration: none;
+		display: block;
+		width: 100%;
+		padding: 5px 0;
+		border-radius: 4px;
+		background: none;
+		box-shadow: none;
+		outline: none;
+		transition: none;
+		font-family: 'Times New Roman', Times, serif !important;
+	}
+	.nav-links li a:hover, .nav-links li a.active {
+		background: none !important;
+		color: #1b3767 !important;
+		box-shadow: none !important;
+		outline: none !important;
+		font-size: 1em !important;
+		font-weight: 500 !important;
+		transition: none !important;
+	}
+}
+/* وضع الشعارين في الزوايا العليا */
+.corner-logos {
+	position: relative;
+	width: 100%;
+	height: 0;
+}
+.logo-ministry {
+	position: absolute;
+	right: 18px;
+	top: -10px;
+	height: 54px;
+	max-width: 120px;
+	background: transparent;
+	padding: 0;
+	border-radius: 0;
+	box-shadow: 0 2px 8px #1b376733;
+	z-index: 10;
+	filter: drop-shadow(0 2px 6px #1b376744);
+}
+.logo-vision {
+	position: absolute;
+	left: 18px;
+	top: -10px;
+	height: 54px;
+	max-width: 120px;
+	background: transparent;
+	padding: 0;
+	border-radius: 0;
+	box-shadow: 0 2px 8px #1b376733;
+	z-index: 10;
+	filter: drop-shadow(0 2px 6px #1b376744);
+}
+body {
+	font-family: 'Cairo', Tahoma, Arial, sans-serif;
+	background: #f4f7fa;
+	margin: 0;
+	min-height: 100vh;
+}
+
+	background: rgba(27, 55, 103, 0.18);
+			box-shadow: 0 2px 12px #e0e6f7;
+			border-radius: 0 0 18px 18px;
+			padding: 0 0 10px 0;
+			margin-bottom: 25px;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			font-family: 'H ALHFHAF', Tahoma, Arial, sans-serif;
+			font-size: 16px;
+}
+
+.navbar .logo {
+		color: #2a3b6e;
+	font-size: 1.5em;
+	font-weight: bold;
+	letter-spacing: 1px;
+}
+
+.nav-links {
+	display: flex;
+	gap: 18px;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+	.nav-links li {
+		text-align: center;
+		padding: 6px 0;
+		width: 100%;
+		border-bottom: 1.5px solid #b2c6e6;
+		margin: 0 8px;
+	}
+	.nav-links li:last-child {
+		border-bottom: none;
+	}
+			font-family: 'H ALHFHAF', Tahoma, Arial, sans-serif;
+			font-size: 16px;
+}
+.nav-links li a.active, .nav-links li a:hover {
+		background: #fff;
+		margin: 18px auto 0 auto;
+		padding: 18px 0 12px 0;
+		border-radius: 18px;
+		box-shadow: none;
+		max-width: 600px;
+		text-align: center;
+		position: relative;
+		z-index: 5;
+	max-width: 900px;
+	margin: 30px auto 30px auto;
+		color: #1b3767;
+		font-size: 16px;
+		font-weight: bold;
+		letter-spacing: 1px;
+		font-family: 'Arabic Poetry', 'Amiri', 'Diwan', serif;
+	font-family: 'Cairo', Tahoma, Arial, sans-serif;
+}
+
+label, p, th, td, input, select, button {
+	font-size: 16px;
+	font-family: inherit;
+}
+
+button, .export-btn {
+	background: #1b3767;
+	color: #fff;
+	border: none;
+	border-radius: 7px;
+	padding: 8px 22px;
+	font-weight: bold;
+	cursor: pointer;
+	box-shadow: 0 2px 8px #dbe3f7;
+	margin: 6px 0;
+	transition: background 0.2s, box-shadow 0.2s;
+}
+button:hover, .export-btn:hover {
+	background: #254a8a;
+	box-shadow: 0 4px 16px #b2c6e6;
+}
+
+input[type="text"], input[type="date"], select {
+	border: 1px solid #b2c6e6;
+	border-radius: 6px;
+	padding: 7px 12px;
+	margin: 4px 0 10px 0;
+	background: #f6f8fc;
+	transition: border 0.2s;
+}
+input[type="text"]:focus, input[type="date"]:focus, select:focus {
+	border: 1.5px solid #1b3767;
+	outline: none;
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-top: 18px;
+	background: #fafdff;
+	border-radius: 12px;
+	overflow: hidden;
+	box-shadow: 0 2px 12px #dbe3f7;
+}
+th, td {
+	padding: 10px 6px;
+	text-align: center;
+	border-bottom: 1px solid #e3e9f7;
+}
+th {
+			background: #e3e9f7;
+			color: #1a2650;
+			font-size: 16px !important;
+	font-weight: bold;
+}
+tr:last-child td {
+	border-bottom: none;
+}
+
+.past-day {
+	background: #f2f2f2 !important;
+	color: #b0b0b0 !important;
+	pointer-events: auto !important;
+	cursor: not-allowed !important;
+}
+
+#room-warning {
+	background: #fff3cd;
+	color: #856404;
+	border: 1px solid #ffeeba;
+	border-radius: 7px;
+	padding: 10px 20px;
+	margin: 10px 0 0 0;
+	font-weight: bold;
+	text-align: center;
+	box-shadow: 0 2px 8px #f7e6c2;
+}
+
+@media (max-width: 700px) {
+	.container {
+		padding: 12px 2vw 18px 2vw;
+	}
+	.navbar {
+		flex-direction: column;
+		padding-bottom: 18px;
+	}
+	.nav-links {
+		flex-direction: column;
+		gap: 8px;
+	}
+	table, th, td {
+		font-size: 0.98em;
+	}
+}
+/* تمييز الأيام المنصرمة */
+.past-day {
+	background: #eee !important;
+	color: #aaa !important;
+	pointer-events: auto !important;
+	cursor: not-allowed !important;
+}
+body {font-family: Arial, sans-serif; margin:0; padding:0; background:#f7f7f7; color:#333;}
+.container {max-width:1200px; margin:2rem auto; padding:0 1rem;}
+.navbar {display:flex; justify-content:space-between; align-items:center; background:#0052a5; padding:10px 20px; color:#fff; position:sticky; top:0; z-index:100;}
+.navbar .logo {font-size:1.5rem; font-weight:bold;}
+/* إظهار زر الخطوط وإخفاء القوائم في الشاشات الصغيرة */
+.navbar .menu-toggle {display:none; font-size:1.5rem; background:none; border:none; color:#1b3767; cursor:pointer;}
+.nav-links {list-style:none; display:flex; gap:1rem;}
+.nav-links li a {color:#2a3b6e; text-decoration:none; font-weight:bold; transition:0.3s;}
+.nav-links li a:hover,.nav-links li a.active{color:#ffcc00;}
+@media (max-width:768px) {
+	.navbar .menu-toggle {display:block;}
+	.nav-links {
+		display: none;
+		flex-direction: column;
+		gap: 0;
+		background: #fff;
+		width: 90vw;
+		max-width: 350px;
+		position: absolute;
+		top: 60px;
+		right: 5vw;
+		box-shadow: 0 4px 24px #1b376733;
+		border-radius: 14px;
+		border: 1px solid #e3e9f7;
+		z-index: 1000;
+		padding: 18px 0;
+	}
+	.nav-links.show {
+		display: flex;
+		opacity: 1;
+		transform: translateY(0);
+		pointer-events: auto;
+	}
+	.nav-links li {
+		text-align: center;
+		padding: 16px 0;
+		border-bottom: 1px solid #e3e9f7;
+		width: 100%;
+	}
+	.nav-links li:last-child {border-bottom: none;}
+	.nav-links li a {
+	color: #1b3767 !important;
+	font-size: 1em;
+	font-weight: 500;
+	text-decoration: none;
+	display: block;
+	width: 100%;
+	padding: 5px 0;
+	border-radius: 4px;
+	background: none;
+	box-shadow: none;
+	outline: none;
+	transition: none;
+		font-family: 'Times New Roman', Times, serif !important;
+	}
+	.nav-links li a:hover, .nav-links li a.active {
+		background: none !important;
+		color: #1b3767 !important;
+		box-shadow: none !important;
+		outline: none !important;
+		font-size: 1em !important;
+		font-weight: 500 !important;
+		transition: none !important;
+	}
+	.nav-links {
+		opacity: 0;
+		transform: translateY(-20px);
+		pointer-events: none;
+		transition: opacity 0.35s cubic-bezier(.4,0,.2,1), transform 0.35s cubic-bezier(.4,0,.2,1);
+	}
+}
+button{cursor:pointer;border:none;border-radius:6px;padding:8px 15px;font-size:1rem;transition:0.3s;}
+button:hover{opacity:0.85;}
+.export-btn{background:#ff9933;color:#fff;margin-top:1rem;}
+.export-btn:hover{background:#e68a00;}
+button[type="submit"]{background:#0052a5;color:#fff;}
+button[type="submit"]:hover{background:#003d80;}
+#room-list{list-style:none;padding:0;margin-top:1rem;}
+#room-list li{background:#fff;margin-bottom:0.5rem;padding:8px 10px;border-radius:6px;display:flex;justify-content:space-between;align-items:center;}
+#room-list li button{background:#ff3333;padding:5px 10px;font-size:0.9rem;}
+#room-list li button:hover{background:#cc0000;}
+table{width:100%;border-collapse:collapse;background:#fff;margin-top:1rem;}
+table th,table td{border:1px solid #ccc;padding:8px;text-align:center;}
+table th{background:#0052a5;color:#fff;}
+table td{min-width:80px;height:40px;}
+table td:hover{background:#e6f0ff; cursor:pointer;}
+[data-time]{background:#f0f0f0;}
+[data-time]:nth-child(even){background:#d9e6f2;}
+input[type="text"],select{padding:7px 10px;border-radius:6px;border:1px solid #ccc;margin-right:10px;min-width:200px;}

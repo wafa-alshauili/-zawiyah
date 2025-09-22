@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>القاعات</title>
+<link rel="stylesheet" href="style.css">
+<link href="https://fonts.googleapis.com/css2?family=Arabic+Poetry:opsz,wght@16..72,400;16..72,700&display=swap" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar">
+	<div class="corner-logos">
+		<img class="logo-ministry" src="https://i.ibb.co/HfwV7QB5/ministerylogo1-1.png" alt="شعار وزارة التربية والتعليم سلطنة عمان">
+	</div>
+</nav>
+
+<main class="container">
+			<div class="site-title-bar" style="text-align:center; margin: 40px auto 0 auto;">
+				<span class="site-title">زاوية</span>
+					<div style="position:relative;">
+												<button id="menu-toggle" style="display:none; background:none; border:none; position:absolute; left:18px; top:18px; z-index:1100; cursor:pointer;">
+													  <span style="font-size:1.5em; color:#1b3767;">&#9776;</span>
+												</button>
+												<ul class="nav-links" id="nav-links" style="display:flex; justify-content:center; gap:32px; list-style:none; margin:28px auto 0 auto; padding:0; background:rgba(27,55,103,0.12); border-radius:16px; box-shadow:0 2px 12px rgba(27,55,103,0.08);">
+													<li><a href="index.html" style="font-size:1.2em; font-family:'Times New Roman', Times, serif; color:#1b3767; font-weight:bold; padding:10px 24px; border-radius:8px;">الرئيسية</a></li>
+													<li><a href="reservations.html" style="font-size:1.2em; font-family:'Times New Roman', Times, serif; color:#1b3767; font-weight:bold; padding:10px 24px; border-radius:8px;">الحجوزات</a></li>
+													<li><a href="rooms.html" class="active" style="font-size:1.2em; font-family:'Times New Roman', Times, serif; color:#1b3767; font-weight:bold; padding:10px 24px; border-radius:8px;">القاعات</a></li>
+												</ul>
+					</div>
+			</div>
+
+<main class="container">
+	<h1 class="main-title">زاوية</h1>
+<h2>إدارة القاعات</h2>
+
+<form id="room-form">
+<input type="text" id="room-name" placeholder="اسم القاعة" required>
+<button type="submit">➕ إضافة قاعة</button>
+</form>
+
+<ul id="room-list"></ul>
+</main>
+
+<script src="script.js"></script>
+<script>
+// إظهار زر القائمة في الشاشات الصغيرة وتثبيت موقعه في أعلى يسار الصفحة
+function toggleMenuButton() {
+	var btn = document.getElementById('menu-toggle');
+	var nav = document.getElementById('nav-links');
+	btn.style.position = 'fixed';
+	btn.style.left = '18px';
+	btn.style.top = '18px';
+	btn.style.zIndex = '1100';
+	if(window.innerWidth <= 768) {
+		btn.style.display = 'block';
+		nav.style.position = 'absolute';
+		nav.style.top = '60px';
+		nav.style.left = '50%';
+		nav.style.transform = 'translateX(-50%)';
+		nav.style.width = '90vw';
+		nav.style.maxWidth = '320px';
+		nav.style.background = '#fff';
+		nav.style.boxShadow = '0 2px 12px #1b376722';
+		nav.style.borderRadius = '12px';
+		nav.style.zIndex = '1000';
+	} else {
+		btn.style.display = 'none';
+		nav.style.position = '';
+		nav.style.top = '';
+		nav.style.left = '';
+		nav.style.transform = '';
+		nav.style.width = '';
+		nav.style.maxWidth = '';
+		nav.style.background = 'rgba(27,55,103,0.12)';
+		nav.style.boxShadow = '0 2px 12px rgba(27,55,103,0.08)';
+		nav.style.borderRadius = '16px';
+		nav.style.zIndex = '';
+		nav.classList.remove('show');
+	}
+}
+window.addEventListener('resize', toggleMenuButton);
+window.addEventListener('DOMContentLoaded', toggleMenuButton);
+</script>
+</body>
+<footer style="background:rgba(27,55,103,0.08); color:#1b3767; text-align:center; padding:18px 0; font-size:1.1em; font-family:'Times New Roman', Times, serif; margin-top:40px; border-radius:0 0 16px 16px;">
+	مصممة الموقع : وفاء الشعيلية &mdash; معلمة تقنية معلومات
+</footer>
+</html>
