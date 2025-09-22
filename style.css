@@ -446,6 +446,37 @@ button:hover {
   background: rgba(27, 55, 103, 0.3);
 }
 
+/* تحسين الإحصائيات البصرية */
+#visual-stats {
+  transition: all 0.5s ease-in-out;
+  transform-origin: top;
+}
+
+#visual-stats.show {
+  animation: slideDown 0.5s ease-in-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* تحسين زر استعراض الإحصائيات */
+.quick-actions button:nth-child(4) {
+  background: linear-gradient(45deg, #9c27b0, #673ab7);
+}
+
+.quick-actions button:nth-child(4):hover {
+  background: linear-gradient(45deg, #7b1fa2, #512da8);
+  box-shadow: 0 4px 15px rgba(156, 39, 176, 0.3);
+}
+
 /* تحسين الرسوم البيانية */
 .charts-container {
   margin-top: 20px;

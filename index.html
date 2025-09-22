@@ -74,6 +74,10 @@
                 style="background: #ff9800; color: white; border: none; padding: 15px 20px; border-radius: 8px; font-size: 1em; cursor: pointer; transition: all 0.3s;">
           📊 تصدير البيانات
         </button>
+        <button onclick="toggleVisualStats()" 
+                style="background: #9c27b0; color: white; border: none; padding: 15px 20px; border-radius: 8px; font-size: 1em; cursor: pointer; transition: all 0.3s;">
+          📈 استعراض الإحصائيات
+        </button>
       </div>
     </div>
 
@@ -86,15 +90,18 @@
     </div>
 
     <!-- الإحصائيات البصرية -->
-    <div class="visual-stats" style="background: white; border-radius: 12px; padding: 25px; margin-top: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <div class="visual-stats" id="visual-stats" style="background: white; border-radius: 12px; padding: 25px; margin-top: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: none;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h3 style="color: #1b3767; margin: 0;">📊 الإحصائيات البصرية</h3>
         <div>
           <button onclick="exportCharts()" style="background: #4caf50; color: white; border: none; padding: 8px 15px; border-radius: 5px; margin-left: 10px; cursor: pointer; font-size: 0.9em;">
             📊 تصدير الإحصائيات
           </button>
-          <button onclick="printCharts()" style="background: #2196f3; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 0.9em;">
+          <button onclick="printCharts()" style="background: #2196f3; color: white; border: none; padding: 8px 15px; border-radius: 5px; margin-left: 10px; cursor: pointer; font-size: 0.9em;">
             🖨️ طباعة الإحصائيات
+          </button>
+          <button onclick="toggleVisualStats()" style="background: #f44336; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 0.9em;">
+            ❌ إخفاء الإحصائيات
           </button>
         </div>
       </div>
@@ -172,8 +179,11 @@ function updateDashboard() {
   // عرض أحدث الحجوزات
   updateRecentBookings(reservations);
   
-  // تحديث الإحصائيات البصرية
-  updateVisualStats(reservations);
+  // تحديث الإحصائيات البصرية فقط إذا كانت ظاهرة
+  const visualStatsDiv = document.getElementById('visual-stats');
+  if (visualStatsDiv && visualStatsDiv.style.display !== 'none') {
+    updateVisualStats(reservations);
+  }
 }
 
 function updateRecentBookings(reservations) {
@@ -423,6 +433,70 @@ function printCharts() {
     printWindow.print();
     printWindow.close();
   }, 500);
+}
+
+// إظهار وإخفاء الإحصائيات البصرية
+function toggleVisualStats() {
+  const visualStatsDiv = document.getElementById('visual-stats');
+  
+  if (visualStatsDiv.style.display === 'none') {
+    // إظهار الإحصائيات
+    visualStatsDiv.style.display = 'block';
+    visualStatsDiv.classList.add('show');
+    
+    // تحديث نص الزر في الإجراءات السريعة
+    const quickActionButton = document.querySelector('.quick-actions button:nth-child(4)');
+    if (quickActionButton) {
+      quickActionButton.innerHTML = '📈 إخفاء الإحصائيات';
+      quickActionButton.style.background = 'linear-gradient(45deg, #f44336, #d32f2f)';
+    }
+    
+    // تحديث البيانات عند الإظهار
+    const savedReservations = localStorage.getItem('school_reservations');
+    const reservations = savedReservations ? JSON.parse(savedReservations) : [];
+    
+    // انتظار قليل لضمان ظهور العنصر ثم تحديث البيانات
+    setTimeout(() => {
+      updateVisualStats(reservations);
+    }, 100);
+    
+    // انتقال سلس إلى قسم الإحصائيات
+    setTimeout(() => {
+      visualStatsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 200);
+    
+    // إظهار رسالة تحميل
+    showLoadingMessage();
+    
+  } else {
+    // إخفاء الإحصائيات
+    visualStatsDiv.style.display = 'none';
+    visualStatsDiv.classList.remove('show');
+    
+    // تحديث نص الزر
+    const quickActionButton = document.querySelector('.quick-actions button:nth-child(4)');
+    if (quickActionButton) {
+      quickActionButton.innerHTML = '📈 استعراض الإحصائيات';
+      quickActionButton.style.background = 'linear-gradient(45deg, #9c27b0, #673ab7)';
+    }
+  }
+}
+
+// إظهار رسالة تحميل أثناء إنشاء الرسوم البيانية
+function showLoadingMessage() {
+  const chartsContainer = document.querySelector('.charts-container');
+  if (chartsContainer) {
+    chartsContainer.innerHTML = `
+      <div style="text-align: center; padding: 50px; grid-column: 1/-1;">
+        <div style="color: #1b3767; font-size: 1.2em; margin-bottom: 10px;">
+          📊 جاري تحضير الإحصائيات البصرية...
+        </div>
+        <div style="color: #666; font-size: 0.9em;">
+          يرجى الانتظار قليلاً
+        </div>
+      </div>
+    `;
+  }
 }
 
 // تصدير جميع البيانات
