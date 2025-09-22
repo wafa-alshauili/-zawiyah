@@ -6,6 +6,7 @@
 <title>القاعات</title>
 <link rel="stylesheet" href="style.css">
 <link href="https://fonts.googleapis.com/css2?family=Arabic+Poetry:opsz,wght@16..72,400;16..72,700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 <nav class="navbar">
@@ -39,6 +40,31 @@
 </form>
 
 <ul id="room-list"></ul>
+
+<!-- نافذة إحصائيات القاعة -->
+<div id="room-stats-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000;">
+  <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 800px; max-height: 80vh; overflow-y: auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <h3 id="room-stats-title" style="color: #1b3767; margin: 0;">📊 إحصائيات القاعة</h3>
+      <button onclick="closeRoomStatsModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">×</button>
+    </div>
+    
+    <div id="room-stats-content" style="text-align: center;">
+      <div style="margin: 20px 0;">
+        <div style="color: #666;">جاري تحميل الإحصائيات...</div>
+      </div>
+    </div>
+    
+    <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+      <button onclick="printRoomStats()" style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">
+        🖨️ طباعة
+      </button>
+      <button onclick="exportRoomStats()" style="background: #17a2b8; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">
+        💾 تصدير
+      </button>
+    </div>
+  </div>
+</div>
 </main>
 
 <script src="script.js"></script>
@@ -82,10 +108,16 @@ function displayRooms() {
           <strong style="color: #1b3767; font-size: 1.1em;">${index + 1}. ${room}</strong>
           <div style="color: #666; font-size: 0.9em; margin-top: 5px;">📍 قاعة متاحة للحجز</div>
         </div>
-        <button onclick="deleteRoom(${index})" 
-                style="background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9em;">
-          🗑️ حذف
-        </button>
+        <div style="display: flex; gap: 8px;">
+          <button onclick="showRoomStats('${room}')" 
+                  style="background: linear-gradient(135deg, #007bff, #0056b3); color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9em; transition: transform 0.2s;">
+            📊 إحصائيات
+          </button>
+          <button onclick="deleteRoom(${index})" 
+                  style="background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9em;">
+            🗑️ حذف
+          </button>
+        </div>
       </div>
     `;
     roomList.appendChild(li);
@@ -146,6 +178,302 @@ document.addEventListener('DOMContentLoaded', function() {
   loadRooms();
   document.getElementById('room-form').addEventListener('submit', addRoom);
 });
+
+// دوال إحصائيات القاعة
+function showRoomStats(roomName) {
+  const modal = document.getElementById('room-stats-modal');
+  const title = document.getElementById('room-stats-title');
+  const content = document.getElementById('room-stats-content');
+  
+  title.textContent = `📊 إحصائيات قاعة ${roomName}`;
+  content.innerHTML = '<div style="color: #666;">جاري تحميل الإحصائيات...</div>';
+  modal.style.display = 'block';
+  
+  // حساب الإحصائيات
+  setTimeout(() => {
+    const stats = calculateRoomStats(roomName);
+    displayRoomStatsContent(stats, roomName);
+  }, 500);
+}
+
+function calculateRoomStats(roomName) {
+  // جلب الحجوزات من localStorage
+  const reservations = JSON.parse(localStorage.getItem('school_reservations') || '[]');
+  const roomReservations = reservations.filter(res => res.room === roomName);
+  
+  if (roomReservations.length === 0) {
+    return {
+      totalReservations: 0,
+      topTeachers: [],
+      topSubjects: [],
+      busyDays: [],
+      weeklyActivity: {}
+    };
+  }
+  
+  // أكثر المعلمات حجزاً
+  const teacherCounts = {};
+  roomReservations.forEach(res => {
+    teacherCounts[res.teacher] = (teacherCounts[res.teacher] || 0) + 1;
+  });
+  const topTeachers = Object.entries(teacherCounts)
+    .sort(([,a], [,b]) => b - a)
+    .slice(0, 5);
+  
+  // أكثر الفصول نشاطاً
+  const subjectCounts = {};
+  roomReservations.forEach(res => {
+    subjectCounts[res.subject] = (subjectCounts[res.subject] || 0) + 1;
+  });
+  const topSubjects = Object.entries(subjectCounts)
+    .sort(([,a], [,b]) => b - a)
+    .slice(0, 5);
+  
+  // أكثر الأيام نشاطاً
+  const dayCounts = {};
+  const dayNames = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
+  roomReservations.forEach(res => {
+    const dayName = dayNames[res.day] || `اليوم ${res.day + 1}`;
+    dayCounts[dayName] = (dayCounts[dayName] || 0) + 1;
+  });
+  const busyDays = Object.entries(dayCounts)
+    .sort(([,a], [,b]) => b - a)
+    .slice(0, 5);
+  
+  return {
+    totalReservations: roomReservations.length,
+    topTeachers,
+    topSubjects,
+    busyDays,
+    weeklyActivity: dayCounts
+  };
+}
+
+function displayRoomStatsContent(stats, roomName) {
+  const content = document.getElementById('room-stats-content');
+  
+  if (stats.totalReservations === 0) {
+    content.innerHTML = `
+      <div style="text-align: center; padding: 40px;">
+        <div style="font-size: 48px; margin-bottom: 20px;">📋</div>
+        <h3 style="color: #666;">لا توجد حجوزات لهذه القاعة</h3>
+        <p style="color: #999;">لم يتم تسجيل أي حجوزات لقاعة ${roomName} حتى الآن</p>
+      </div>
+    `;
+    return;
+  }
+  
+  content.innerHTML = `
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+      
+      <!-- إجمالي الحجوزات -->
+      <div style="background: linear-gradient(135deg, #1b3767, #2d4a7a); color: white; padding: 20px; border-radius: 8px; text-align: center;">
+        <div style="font-size: 36px; margin-bottom: 10px;">📅</div>
+        <h4 style="margin: 0 0 10px 0;">إجمالي الحجوزات</h4>
+        <div style="font-size: 28px; font-weight: bold;">${stats.totalReservations}</div>
+      </div>
+      
+      <!-- أكثر المعلمات حجزاً -->
+      <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 2px solid #e9ecef;">
+        <h4 style="color: #1b3767; margin: 0 0 15px 0; text-align: center;">👩‍🏫 أكثر المعلمات حجزاً</h4>
+        ${stats.topTeachers.length > 0 ? 
+          stats.topTeachers.map(([teacher, count], index) => `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #e9ecef;">
+              <span style="font-weight: ${index === 0 ? 'bold' : 'normal'}; color: ${index === 0 ? '#1b3767' : '#666'};">
+                ${index + 1}. ${teacher}
+              </span>
+              <span style="background: ${index === 0 ? '#1b3767' : '#6c757d'}; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.9em;">
+                ${count}
+              </span>
+            </div>
+          `).join('') : 
+          '<div style="text-align: center; color: #999;">لا توجد بيانات</div>'
+        }
+      </div>
+      
+      <!-- أكثر الفصول نشاطاً -->
+      <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 2px solid #e9ecef;">
+        <h4 style="color: #1b3767; margin: 0 0 15px 0; text-align: center;">📚 أكثر الفصول نشاطاً</h4>
+        ${stats.topSubjects.length > 0 ? 
+          stats.topSubjects.map(([subject, count], index) => `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #e9ecef;">
+              <span style="font-weight: ${index === 0 ? 'bold' : 'normal'}; color: ${index === 0 ? '#1b3767' : '#666'};">
+                ${index + 1}. ${subject}
+              </span>
+              <span style="background: ${index === 0 ? '#28a745' : '#6c757d'}; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.9em;">
+                ${count}
+              </span>
+            </div>
+          `).join('') : 
+          '<div style="text-align: center; color: #999;">لا توجد بيانات</div>'
+        }
+      </div>
+      
+      <!-- أكثر الأيام نشاطاً -->
+      <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 2px solid #e9ecef;">
+        <h4 style="color: #1b3767; margin: 0 0 15px 0; text-align: center;">📊 أكثر الأيام نشاطاً</h4>
+        ${stats.busyDays.length > 0 ? 
+          stats.busyDays.map(([day, count], index) => `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #e9ecef;">
+              <span style="font-weight: ${index === 0 ? 'bold' : 'normal'}; color: ${index === 0 ? '#1b3767' : '#666'};">
+                ${index + 1}. ${day}
+              </span>
+              <span style="background: ${index === 0 ? '#17a2b8' : '#6c757d'}; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.9em;">
+                ${count}
+              </span>
+            </div>
+          `).join('') : 
+          '<div style="text-align: center; color: #999;">لا توجد بيانات</div>'
+        }
+      </div>
+      
+    </div>
+    
+    <!-- رسم بياني للأيام -->
+    <div style="margin-top: 30px; background: white; padding: 20px; border-radius: 8px; border: 2px solid #e9ecef;">
+      <h4 style="color: #1b3767; text-align: center; margin-bottom: 20px;">📈 توزيع الحجوزات حسب الأيام</h4>
+      <canvas id="room-days-chart" width="400" height="200"></canvas>
+    </div>
+  `;
+  
+  // رسم الرسم البياني
+  setTimeout(() => createRoomDaysChart(stats.weeklyActivity), 100);
+}
+
+function createRoomDaysChart(weeklyActivity) {
+  const canvas = document.getElementById('room-days-chart');
+  if (!canvas) return;
+  
+  // تدمير الرسم البياني القديم إن وُجد
+  if (window.roomDaysChart) {
+    window.roomDaysChart.destroy();
+  }
+  
+  const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
+  const data = days.map(day => weeklyActivity[day] || 0);
+  
+  const ctx = canvas.getContext('2d');
+  window.roomDaysChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: days,
+      datasets: [{
+        label: 'عدد الحجوزات',
+        data: data,
+        backgroundColor: [
+          '#1b3767',
+          '#2d4a7a',
+          '#3e5d8d',
+          '#4f70a0',
+          '#6083b3'
+        ],
+        borderColor: '#1b3767',
+        borderWidth: 1,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            stepSize: 1,
+            font: {
+              family: 'Arial'
+            }
+          },
+          grid: {
+            color: '#e9ecef'
+          }
+        },
+        x: {
+          ticks: {
+            font: {
+              family: 'Arial',
+              size: 12
+            }
+          },
+          grid: {
+            display: false
+          }
+        }
+      },
+      animation: {
+        duration: 1000,
+        easing: 'easeOutQuart'
+      }
+    }
+  });
+}
+
+function closeRoomStatsModal() {
+  document.getElementById('room-stats-modal').style.display = 'none';
+}
+
+function printRoomStats() {
+  const roomName = document.getElementById('room-stats-title').textContent.replace('📊 إحصائيات قاعة ', '');
+  const content = document.getElementById('room-stats-content').innerHTML;
+  
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html dir="rtl">
+    <head>
+      <meta charset="UTF-8">
+      <title>إحصائيات قاعة ${roomName}</title>
+      <style>
+        body { font-family: Arial, sans-serif; margin: 20px; direction: rtl; }
+        h1 { color: #1b3767; text-align: center; }
+        .no-print { display: none; }
+        @media print { .no-print { display: none !important; } }
+      </style>
+    </head>
+    <body>
+      <h1>إحصائيات قاعة ${roomName}</h1>
+      <div>${content}</div>
+      <p style="text-align: center; margin-top: 30px; color: #666; font-size: 0.9em;">
+        طُبعت من نظام زاوية - ${new Date().toLocaleDateString('ar-SA')}
+      </p>
+    </body>
+    </html>
+  `);
+  printWindow.document.close();
+  printWindow.print();
+}
+
+function exportRoomStats() {
+  const roomName = document.getElementById('room-stats-title').textContent.replace('📊 إحصائيات قاعة ', '');
+  const stats = calculateRoomStats(roomName);
+  
+  const exportData = {
+    roomName: roomName,
+    exportDate: new Date().toISOString(),
+    totalReservations: stats.totalReservations,
+    topTeachers: stats.topTeachers,
+    topSubjects: stats.topSubjects,
+    busyDays: stats.busyDays,
+    weeklyActivity: stats.weeklyActivity
+  };
+  
+  const dataStr = JSON.stringify(exportData, null, 2);
+  const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+  
+  const exportFileDefaultName = `room-stats-${roomName}-${new Date().toISOString().split('T')[0]}.json`;
+  
+  const linkElement = document.createElement('a');
+  linkElement.setAttribute('href', dataUri);
+  linkElement.setAttribute('download', exportFileDefaultName);
+  linkElement.click();
+  
+  alert(`✅ تم تصدير إحصائيات قاعة "${roomName}" بنجاح`);
+}
 
 // إظهار زر القائمة في الشاشات الصغيرة وتثبيت موقعه في أعلى يسار الصفحة
 function toggleMenuButton() {
