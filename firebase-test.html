@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار Firebase</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; }
+        .test-section { 
+            background: #f5f5f5; 
+            padding: 15px; 
+            margin: 10px 0; 
+            border-radius: 8px;
+            border-left: 4px solid #007acc;
+        }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        .warning { color: orange; font-weight: bold; }
+        button { 
+            background: #007acc; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            margin: 5px; 
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover { background: #005a9e; }
+        #results { background: white; border: 1px solid #ddd; padding: 15px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 اختبار Firebase - نظام حجز القاعات المدرسية</h1>
+
+    <div class="test-section">
+        <h2>📊 حالة الاتصال</h2>
+        <div id="connection-status">جاري التحقق...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔧 اختبارات الوظائف الأساسية</h2>
+        <button onclick="testFirebaseConnection()">اختبار الاتصال</button>
+        <button onclick="testLocalStorage()">اختبار localStorage</button>
+        <button onclick="testDataWrite()">اختبار كتابة البيانات</button>
+        <button onclick="testDataRead()">اختبار قراءة البيانات</button>
+        <button onclick="testFailover()">اختبار نظام التراجع</button>
+    </div>
+
+    <div class="test-section">
+        <h2>🏫 اختبار بيانات المدرسة</h2>
+        <button onclick="testRoomsData()">اختبار بيانات القاعات</button>
+        <button onclick="testReservationsData()">اختبار بيانات الحجوزات</button>
+        <button onclick="testSync()">اختبار المزامنة</button>
+    </div>
+
+    <div id="results"></div>
+
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+    <script>
+        // إعدادات Firebase - نفس الإعدادات من index.html
+        window.FIREBASE_ENABLED = true;
+        window.FIREBASE_READY = false;
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCddo_kfYs8wO_xzZgf2WsWDvBWW8wC8rE",
+            authDomain: "zawiyah-76151.firebaseapp.com",
+            projectId: "zawiyah-76151",
+            storageBucket: "zawiyah-76151.appspot.com",
+            messagingSenderId: "259480775839",
+            appId: "1:259480775839:web:0a95d39bfeb45f4c3abd83"
+        };
+
+        // تهيئة Firebase
+        let initializationResult = '';
+        try {
+            if (window.FIREBASE_ENABLED && typeof firebase !== 'undefined') {
+                firebase.initializeApp(firebaseConfig);
+                window.db = firebase.firestore();
+                window.FIREBASE_READY = true;
+                initializationResult = '<span class="success">✅ Firebase تم تهيئته بنجاح</span>';
+            }
+        } catch (error) {
+            initializationResult = `<span class="error">❌ فشل في تهيئة Firebase: ${error.message}</span>`;
+            window.FIREBASE_ENABLED = false;
+            window.FIREBASE_READY = false;
+        }
+
+        // عرض حالة الاتصال
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('connection-status').innerHTML = initializationResult;
+        });
+
+        // دوال المساعدة
+        function isFirebaseReady() {
+            return window.FIREBASE_ENABLED && window.FIREBASE_READY && window.db;
+        }
+
+        function disableFirebase() {
+            window.FIREBASE_ENABLED = false;
+            window.FIREBASE_READY = false;
+            log('🔄 تم إيقاف Firebase، التبديل لـ localStorage');
+        }
+
+        function log(message) {
+            const results = document.getElementById('results');
+            results.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
+            console.log(message);
+        }
+
+        // اختبارات الوظائف الأساسية
+        async function testFirebaseConnection() {
+            log('🔍 اختبار الاتصال بـ Firebase...');
+            
+            if (!isFirebaseReady()) {
+                log('<span class="error">❌ Firebase غير جاهز أو تم إيقافه</span>');
+                return;
+            }
+
+            try {
+                // محاولة قراءة بسيطة من Firestore
+                const testDoc = await db.collection('test').doc('connection').get();
+                log('<span class="success">✅ الاتصال بـ Firebase يعمل بشكل صحيح</span>');
+            } catch (error) {
+                log(`<span class="error">❌ خطأ في الاتصال: ${error.message}</span>`);
+                if (error.code === 'permission-denied') {
+                    log('<span class="warning">⚠️ خطأ في الصلاحيات - سيتم التبديل لـ localStorage</span>');
+                    disableFirebase();
+                }
+            }
+        }
+
+        function testLocalStorage() {
+            log('🔍 اختبار localStorage...');
+            
+            try {
+                const testKey = 'firebase_test_' + Date.now();
+                const testData = { test: true, timestamp: Date.now() };
+                
+                localStorage.setItem(testKey, JSON.stringify(testData));
+                const retrieved = JSON.parse(localStorage.getItem(testKey));
+                
+                if (retrieved && retrieved.test === true) {
+                    log('<span class="success">✅ localStorage يعمل بشكل صحيح</span>');
+                    localStorage.removeItem(testKey);
+                } else {
+                    log('<span class="error">❌ خطأ في localStorage</span>');
+                }
+            } catch (error) {
+                log(`<span class="error">❌ خطأ في localStorage: ${error.message}</span>`);
+            }
+        }
+
+        async function testDataWrite() {
+            log('🔍 اختبار كتابة البيانات...');
+            
+            const testData = {
+                name: 'قاعة اختبار',
+                capacity: 30,
+                timestamp: new Date().toISOString(),
+                created_by: 'firebase_test'
+            };
+
+            // اختبار localStorage أولاً
+            try {
+                localStorage.setItem('test_room', JSON.stringify(testData));
+                log('<span class="success">✅ كتابة البيانات في localStorage نجحت</span>');
+            } catch (error) {
+                log(`<span class="error">❌ فشل كتابة localStorage: ${error.message}</span>`);
+            }
+
+            // اختبار Firebase إذا كان متاحاً
+            if (isFirebaseReady()) {
+                try {
+                    await db.collection('test_rooms').doc('test_room').set(testData);
+                    log('<span class="success">✅ كتابة البيانات في Firebase نجحت</span>');
+                } catch (error) {
+                    log(`<span class="error">❌ فشل كتابة Firebase: ${error.message}</span>`);
+                    if (error.code === 'permission-denied') {
+                        disableFirebase();
+                    }
+                }
+            } else {
+                log('<span class="warning">⚠️ Firebase غير متاح، استخدام localStorage فقط</span>');
+            }
+        }
+
+        async function testDataRead() {
+            log('🔍 اختبار قراءة البيانات...');
+            
+            // قراءة من localStorage
+            try {
+                const localData = localStorage.getItem('test_room');
+                if (localData) {
+                    const parsed = JSON.parse(localData);
+                    log(`<span class="success">✅ قراءة localStorage: ${parsed.name}</span>`);
+                } else {
+                    log('<span class="warning">⚠️ لا توجد بيانات في localStorage</span>');
+                }
+            } catch (error) {
+                log(`<span class="error">❌ خطأ قراءة localStorage: ${error.message}</span>`);
+            }
+
+            // قراءة من Firebase
+            if (isFirebaseReady()) {
+                try {
+                    const doc = await db.collection('test_rooms').doc('test_room').get();
+                    if (doc.exists) {
+                        const data = doc.data();
+                        log(`<span class="success">✅ قراءة Firebase: ${data.name}</span>`);
+                    } else {
+                        log('<span class="warning">⚠️ لا توجد بيانات في Firebase</span>');
+                    }
+                } catch (error) {
+                    log(`<span class="error">❌ خطأ قراءة Firebase: ${error.message}</span>`);
+                }
+            }
+        }
+
+        function testFailover() {
+            log('🔍 اختبار نظام التراجع...');
+            
+            log(`<span class="warning">🔄 حالة Firebase قبل الإيقاف: ${isFirebaseReady()}</span>`);
+            
+            // إيقاف Firebase
+            disableFirebase();
+            
+            log(`<span class="success">✅ تم إيقاف Firebase بنجاح: ${isFirebaseReady()}</span>`);
+            log('<span class="success">✅ النظام يعمل الآن على localStorage فقط</span>');
+            
+            // إعادة تشغيل Firebase (محاكاة)
+            setTimeout(() => {
+                window.FIREBASE_ENABLED = true;
+                if (window.db) {
+                    window.FIREBASE_READY = true;
+                    log('<span class="success">✅ تم إعادة تفعيل Firebase</span>');
+                }
+            }, 2000);
+        }
+
+        // اختبارات بيانات المدرسة
+        function testRoomsData() {
+            log('🔍 اختبار بيانات القاعات الموجودة...');
+            
+            const rooms = localStorage.getItem('school_rooms');
+            if (rooms) {
+                const parsed = JSON.parse(rooms);
+                log(`<span class="success">✅ تم العثور على ${Object.keys(parsed).length} قاعة</span>`);
+                log(`📋 أسماء القاعات: ${Object.values(parsed).map(r => r.name).join(', ')}`);
+            } else {
+                log('<span class="warning">⚠️ لا توجد قاعات محفوظة</span>');
+            }
+        }
+
+        function testReservationsData() {
+            log('🔍 اختبار بيانات الحجوزات الموجودة...');
+            
+            const reservations = localStorage.getItem('school_reservations');
+            if (reservations) {
+                const parsed = JSON.parse(reservations);
+                log(`<span class="success">✅ تم العثور على ${parsed.length} حجز</span>`);
+                if (parsed.length > 0) {
+                    const latest = parsed[parsed.length - 1];
+                    log(`📋 آخر حجز: ${latest.subject} - ${latest.grade}${latest.section}`);
+                }
+            } else {
+                log('<span class="warning">⚠️ لا توجد حجوزات محفوظة</span>');
+            }
+        }
+
+        async function testSync() {
+            log('🔍 اختبار المزامنة...');
+            
+            if (!isFirebaseReady()) {
+                log('<span class="error">❌ لا يمكن اختبار المزامنة - Firebase غير متاح</span>');
+                return;
+            }
+
+            try {
+                // محاولة مزامنة بيانات القاعات
+                const rooms = localStorage.getItem('school_rooms');
+                if (rooms) {
+                    const parsed = JSON.parse(rooms);
+                    await db.collection('school_data').doc('rooms').set({
+                        data: parsed,
+                        last_updated: new Date().toISOString(),
+                        source: 'test_sync'
+                    });
+                    log('<span class="success">✅ تم رفع بيانات القاعات لـ Firebase</span>');
+
+                    // محاولة استرداد البيانات
+                    const doc = await db.collection('school_data').doc('rooms').get();
+                    if (doc.exists) {
+                        const firebaseData = doc.data();
+                        log(`<span class="success">✅ تم استرداد ${Object.keys(firebaseData.data).length} قاعة من Firebase</span>`);
+                    }
+                } else {
+                    log('<span class="warning">⚠️ لا توجد بيانات للمزامنة</span>');
+                }
+            } catch (error) {
+                log(`<span class="error">❌ خطأ في المزامنة: ${error.message}</span>`);
+                if (error.code === 'permission-denied') {
+                    log('<span class="warning">⚠️ مشكلة في الصلاحيات - تحقق من قواعد Firestore</span>');
+                    disableFirebase();
+                }
+            }
+        }
+    </script>
+</body>
+</html>

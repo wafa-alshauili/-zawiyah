@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إصلاح البيانات التالفة - طوارئ</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f8f9fa;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #dc3545;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .alert-danger { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .alert-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        
+        button {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: background 0.3s;
+        }
+        button:hover { background: #c82333; }
+        button.success { background: #28a745; }
+        button.success:hover { background: #218838; }
+        button.info { background: #17a2b8; }
+        button.info:hover { background: #138496; }
+        
+        .data-display {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: monospace;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .progress {
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            height: 20px;
+            margin: 10px 0;
+        }
+        .progress-bar {
+            background: #28a745;
+            height: 100%;
+            transition: width 0.3s;
+            text-align: center;
+            color: white;
+            font-size: 12px;
+            line-height: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚨 إصلاح البيانات التالفة</h1>
+        
+        <div class="alert alert-danger">
+            <strong>⚠️ تحذير:</strong> تم اكتشاف بيانات تالفة في النظام. سنقوم بتنظيفها وإصلاحها.
+        </div>
+
+        <div id="status"></div>
+        <div id="progress-container" style="display: none;">
+            <div class="progress">
+                <div id="progress-bar" class="progress-bar" style="width: 0%">0%</div>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <button onclick="emergencyFix()" style="font-size: 18px; padding: 15px 30px;">
+                🔧 إصلاح طوارئ فوري
+            </button>
+            <button onclick="checkAllData()" class="info">🔍 فحص جميع البيانات</button>
+            <button onclick="clearAllCorrupted()" style="background: #6c757d;">🗑️ مسح البيانات التالفة</button>
+        </div>
+
+        <div id="results"></div>
+        
+        <div class="alert alert-info">
+            <strong>📋 ما سيتم إصلاحه:</strong>
+            <ul>
+                <li>إزالة البيانات التالفة من localStorage</li>
+                <li>إنشاء قائمة القاعات الافتراضية (6 قاعات)</li>
+                <li>تهيئة نظام الحجوزات</li>
+                <li>التحقق من سلامة جميع المفاتيح</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const defaultRooms = ['المختبر', 'قاعة الحاسوب', 'المكتبة', 'القاعة الرئيسية', 'القاعة الذكية', 'غرفة صفية'];
+        
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            const alertClass = `alert alert-${type}`;
+            statusDiv.innerHTML = `<div class="${alertClass}">${message}</div>`;
+        }
+        
+        function showProgress(percent, text) {
+            const container = document.getElementById('progress-container');
+            const bar = document.getElementById('progress-bar');
+            container.style.display = 'block';
+            bar.style.width = percent + '%';
+            bar.textContent = text || percent + '%';
+        }
+        
+        function hideProgress() {
+            document.getElementById('progress-container').style.display = 'none';
+        }
+        
+        async function emergencyFix() {
+            showStatus('🔄 بدء الإصلاح الطارئ...', 'info');
+            showProgress(0, 'البدء...');
+            
+            try {
+                // الخطوة 1: فحص البيانات الحالية
+                showProgress(20, 'فحص البيانات...');
+                const corruptedKeys = [];
+                const allKeys = Object.keys(localStorage);
+                
+                for (let key of allKeys) {
+                    if (key.startsWith('school_')) {
+                        const value = localStorage.getItem(key);
+                        if (value && !isValidJSON(value)) {
+                            corruptedKeys.push(key);
+                        }
+                    }
+                }
+                
+                // الخطوة 2: إزالة البيانات التالفة
+                showProgress(40, 'إزالة البيانات التالفة...');
+                corruptedKeys.forEach(key => {
+                    localStorage.removeItem(key);
+                    console.log(`Removed corrupted key: ${key}`);
+                });
+                
+                // الخطوة 3: إنشاء البيانات الافتراضية
+                showProgress(60, 'إنشاء البيانات الافتراضية...');
+                localStorage.setItem('school_rooms', JSON.stringify(defaultRooms));
+                localStorage.setItem('school_reservations', JSON.stringify([]));
+                
+                // الخطوة 4: التحقق من النتيجة
+                showProgress(80, 'التحقق من الإصلاح...');
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                const rooms = JSON.parse(localStorage.getItem('school_rooms'));
+                const reservations = JSON.parse(localStorage.getItem('school_reservations'));
+                
+                showProgress(100, 'مكتمل!');
+                
+                let resultHtml = '<div class="alert alert-success">';
+                resultHtml += '<h4>✅ تم الإصلاح بنجاح!</h4>';
+                resultHtml += `<p><strong>البيانات التالفة المحذوفة:</strong> ${corruptedKeys.length > 0 ? corruptedKeys.join(', ') : 'لا توجد'}</p>`;
+                resultHtml += `<p><strong>القاعات المثبتة:</strong> ${rooms.length} قاعة</p>`;
+                resultHtml += `<p><strong>نظام الحجوزات:</strong> تم تهيئته (${reservations.length} حجز)</p>`;
+                resultHtml += '</div>';
+                
+                resultHtml += '<div class="data-display">';
+                resultHtml += '<h5>📋 القاعات الافتراضية:</h5>';
+                resultHtml += '<ul>';
+                rooms.forEach(room => {
+                    resultHtml += `<li>${room} ✅</li>`;
+                });
+                resultHtml += '</ul></div>';
+                
+                document.getElementById('results').innerHTML = resultHtml;
+                
+                setTimeout(() => {
+                    hideProgress();
+                    showStatus('🎉 الإصلاح مكتمل! يمكنك الآن العودة للموقع الرئيسي.', 'success');
+                }, 1000);
+                
+            } catch (error) {
+                showStatus(`❌ خطأ في الإصلاح: ${error.message}`, 'danger');
+                hideProgress();
+                console.error('Emergency fix error:', error);
+            }
+        }
+        
+        function isValidJSON(str) {
+            try {
+                JSON.parse(str);
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+        
+        function checkAllData() {
+            showStatus('🔍 جاري فحص جميع البيانات...', 'info');
+            
+            const allKeys = Object.keys(localStorage);
+            const schoolKeys = allKeys.filter(key => key.startsWith('school_'));
+            
+            let resultHtml = '<h4>📊 تقرير فحص البيانات:</h4>';
+            
+            if (schoolKeys.length === 0) {
+                resultHtml += '<div class="alert alert-warning">⚠️ لا توجد بيانات مدرسية محفوظة</div>';
+            } else {
+                resultHtml += '<div class="data-display">';
+                
+                schoolKeys.forEach(key => {
+                    const value = localStorage.getItem(key);
+                    const isValid = isValidJSON(value);
+                    const status = isValid ? '✅' : '❌';
+                    
+                    resultHtml += `<p><strong>${key}:</strong> ${status}`;
+                    
+                    if (isValid) {
+                        try {
+                            const parsed = JSON.parse(value);
+                            const type = Array.isArray(parsed) ? 'مصفوفة' : typeof parsed;
+                            const count = Array.isArray(parsed) ? parsed.length : 
+                                         typeof parsed === 'object' ? Object.keys(parsed).length : 'N/A';
+                            resultHtml += ` (${type} - ${count} عنصر)`;
+                        } catch (e) {
+                            resultHtml += ' (خطأ في التحليل)';
+                        }
+                    } else {
+                        resultHtml += ` (تالف: "${value ? value.substring(0, 50) + '...' : 'فارغ'}")`;
+                    }
+                    
+                    resultHtml += '</p>';
+                });
+                
+                resultHtml += '</div>';
+            }
+            
+            document.getElementById('results').innerHTML = resultHtml;
+            showStatus('تم الانتهاء من الفحص', 'success');
+        }
+        
+        function clearAllCorrupted() {
+            if (confirm('⚠️ هذا سيحذف جميع البيانات المدرسية. هل أنت متأكد؟')) {
+                const allKeys = Object.keys(localStorage);
+                const schoolKeys = allKeys.filter(key => key.startsWith('school_'));
+                
+                schoolKeys.forEach(key => localStorage.removeItem(key));
+                
+                showStatus(`✅ تم حذف ${schoolKeys.length} مفتاح من البيانات`, 'success');
+                document.getElementById('results').innerHTML = '';
+            }
+        }
+        
+        // فحص تلقائي عند التحميل
+        window.onload = function() {
+            checkAllData();
+        };
+    </script>
+</body>
+</html>

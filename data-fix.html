@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إصلاح سريع للبيانات</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            direction: rtl;
+            background: #f5f5f5;
+        }
+        .fix-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        button {
+            background: #1b3767;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #2c5282;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .status-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #1b3767;
+        }
+    </style>
+</head>
+<body>
+    <div class="fix-container">
+        <h1>🔧 إصلاح سريع لبيانات القاعات</h1>
+        
+        <div id="current-status" class="status-box">
+            <h3>الحالة الحالية:</h3>
+            <div id="status-content">جاري الفحص...</div>
+        </div>
+        
+        <div style="text-align: center; margin: 20px 0;">
+            <button onclick="checkCurrentData()">فحص البيانات الحالية</button>
+            <button onclick="fixData()" style="background: #28a745;">🔧 إصلاح البيانات</button>
+            <button onclick="clearAll()" style="background: #dc3545;">🗑️ مسح كل شيء</button>
+        </div>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        function showResult(message, type = 'info') {
+            const results = document.getElementById('results');
+            results.innerHTML += `<div class="${type}">${message}</div>`;
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        function checkCurrentData() {
+            clearResults();
+            showResult('🔍 فحص البيانات الحالية...', 'info');
+            
+            // فحص localStorage
+            const roomsData = localStorage.getItem('school_rooms');
+            const reservationsData = localStorage.getItem('school_reservations');
+            
+            showResult(`📂 school_rooms: ${roomsData ? 'موجود' : 'غير موجود'}`, 'info');
+            if (roomsData) {
+                try {
+                    const parsed = JSON.parse(roomsData);
+                    showResult(`📊 نوع البيانات: ${Array.isArray(parsed) ? 'مصفوفة' : typeof parsed}`, parsed ? 'info' : 'error');
+                    showResult(`📈 المحتوى: ${JSON.stringify(parsed).substring(0, 200)}...`, 'info');
+                    
+                    if (Array.isArray(parsed)) {
+                        showResult(`✅ عدد القاعات: ${parsed.length}`, 'success');
+                    } else if (typeof parsed === 'object' && parsed !== null) {
+                        const keys = Object.keys(parsed);
+                        showResult(`⚠️ كائن يحتوي على ${keys.length} خاصية: ${keys.join(', ')}`, 'error');
+                    } else {
+                        showResult(`❌ نوع بيانات غير صحيح: ${typeof parsed}`, 'error');
+                    }
+                } catch (error) {
+                    showResult(`❌ خطأ في تحليل البيانات: ${error.message}`, 'error');
+                }
+            }
+            
+            showResult(`📂 school_reservations: ${reservationsData ? 'موجود' : 'غير موجود'}`, 'info');
+            if (reservationsData) {
+                try {
+                    const parsed = JSON.parse(reservationsData);
+                    showResult(`📊 عدد الحجوزات: ${Array.isArray(parsed) ? parsed.length : 'غير صحيح'}`, parsed ? 'info' : 'error');
+                } catch (error) {
+                    showResult(`❌ خطأ في تحليل حجوزات: ${error.message}`, 'error');
+                }
+            }
+        }
+        
+        function fixData() {
+            clearResults();
+            showResult('🔧 بدء إصلاح البيانات...', 'info');
+            
+            try {
+                // إنشاء قاعات افتراضية صحيحة
+                const defaultRooms = [
+                    'المختبر', 
+                    'قاعة الحاسوب', 
+                    'المكتبة', 
+                    'القاعة الرئيسية', 
+                    'القاعة الذكية', 
+                    'غرفة صفية'
+                ];
+                
+                // حفظ القاعات
+                localStorage.setItem('school_rooms', JSON.stringify(defaultRooms));
+                localStorage.setItem('school_rooms_backup', JSON.stringify(defaultRooms));
+                localStorage.setItem('school_rooms_last_update', new Date().toISOString());
+                
+                showResult('✅ تم إصلاح بيانات القاعات', 'success');
+                
+                // التحقق من الحجوزات وإصلاحها إذا لزم الأمر
+                const reservationsData = localStorage.getItem('school_reservations');
+                let reservations = [];
+                
+                if (reservationsData) {
+                    try {
+                        reservations = JSON.parse(reservationsData);
+                        if (!Array.isArray(reservations)) {
+                            reservations = [];
+                        }
+                    } catch (error) {
+                        reservations = [];
+                    }
+                }
+                
+                localStorage.setItem('school_reservations', JSON.stringify(reservations));
+                localStorage.setItem('school_reservations_backup', JSON.stringify(reservations));
+                localStorage.setItem('school_reservations_last_update', new Date().toISOString());
+                
+                showResult('✅ تم إصلاح بيانات الحجوزات', 'success');
+                showResult('🎉 تم إصلاح جميع البيانات بنجاح!', 'success');
+                
+                // تحديث الحالة
+                updateStatus();
+                
+            } catch (error) {
+                showResult(`❌ خطأ في الإصلاح: ${error.message}`, 'error');
+            }
+        }
+        
+        function clearAll() {
+            if (confirm('هل أنت متأكد من حذف جميع البيانات؟')) {
+                clearResults();
+                
+                const keysToRemove = [
+                    'school_rooms', 
+                    'school_reservations', 
+                    'school_rooms_backup', 
+                    'school_reservations_backup',
+                    'school_rooms_last_update',
+                    'school_reservations_last_update'
+                ];
+                
+                keysToRemove.forEach(key => {
+                    localStorage.removeItem(key);
+                });
+                
+                showResult('🗑️ تم مسح جميع البيانات', 'success');
+                updateStatus();
+            }
+        }
+        
+        function updateStatus() {
+            const statusContent = document.getElementById('status-content');
+            
+            const roomsData = localStorage.getItem('school_rooms');
+            const reservationsData = localStorage.getItem('school_reservations');
+            
+            let status = '<ul>';
+            
+            if (roomsData) {
+                try {
+                    const rooms = JSON.parse(roomsData);
+                    if (Array.isArray(rooms)) {
+                        status += `<li>✅ القاعات: ${rooms.length} قاعة محفوظة</li>`;
+                    } else {
+                        status += `<li>⚠️ القاعات: تنسيق غير صحيح</li>`;
+                    }
+                } catch (error) {
+                    status += `<li>❌ القاعات: خطأ في البيانات</li>`;
+                }
+            } else {
+                status += `<li>❌ القاعات: غير موجودة</li>`;
+            }
+            
+            if (reservationsData) {
+                try {
+                    const reservations = JSON.parse(reservationsData);
+                    if (Array.isArray(reservations)) {
+                        status += `<li>✅ الحجوزات: ${reservations.length} حجز محفوظ</li>`;
+                    } else {
+                        status += `<li>⚠️ الحجوزات: تنسيق غير صحيح</li>`;
+                    }
+                } catch (error) {
+                    status += `<li>❌ الحجوزات: خطأ في البيانات</li>`;
+                }
+            } else {
+                status += `<li>✅ الحجوزات: فارغة (طبيعي)</li>`;
+            }
+            
+            status += '</ul>';
+            statusContent.innerHTML = status;
+        }
+        
+        // تحديث الحالة عند تحميل الصفحة
+        window.addEventListener('load', updateStatus);
+    </script>
+</body>
+</html>

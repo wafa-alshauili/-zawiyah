@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إصلاح القاعات الافتراضية - فوري</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1b3767;
+            margin-bottom: 30px;
+        }
+        button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            margin: 10px;
+            min-width: 200px;
+        }
+        button:hover {
+            background: #218838;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚨 إصلاح القاعات الافتراضية - فوري</h1>
+        
+        <p>سيتم إضافة القاعات الافتراضية الـ6:</p>
+        <ul style="text-align: right; display: inline-block;">
+            <li>المختبر</li>
+            <li>قاعة الحاسوب</li>
+            <li>المكتبة</li>
+            <li>القاعة الرئيسية</li>
+            <li>القاعة الذكية</li>
+            <li>غرفة صفية</li>
+        </ul>
+
+        <div id="status"></div>
+        
+        <button onclick="fixRoomsNow()" style="background: #dc3545;">🔧 إصلاح فوري</button>
+        <button onclick="checkStatus()">🔍 فحص الحالة</button>
+        <button onclick="clearAll()" style="background: #6c757d;">🗑️ مسح الكل</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const defaultRooms = ['المختبر', 'قاعة الحاسوب', 'المكتبة', 'القاعة الرئيسية', 'القاعة الذكية', 'غرفة صفية'];
+
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function showResults(content) {
+            document.getElementById('results').innerHTML = content;
+        }
+
+        function fixRoomsNow() {
+            showStatus('🔄 جاري إصلاح البيانات...', 'info');
+            
+            try {
+                // حفظ كمصفوفة
+                localStorage.setItem('school_rooms', JSON.stringify(defaultRooms));
+                
+                showStatus('✅ تم الإصلاح بنجاح! جاري التحقق...', 'success');
+                
+                // التحقق من النتيجة
+                setTimeout(() => {
+                    checkStatus();
+                }, 500);
+                
+            } catch (error) {
+                showStatus(`❌ خطأ في الإصلاح: ${error.message}`, 'error');
+            }
+        }
+
+        function checkStatus() {
+            const saved = localStorage.getItem('school_rooms');
+            
+            if (!saved) {
+                showResults('<div class="status error">❌ لا توجد بيانات محفوظة</div>');
+                return;
+            }
+            
+            try {
+                const rooms = JSON.parse(saved);
+                let html = '<div class="status info">📊 الحالة الحالية:</div>';
+                html += `<p><strong>نوع البيانات:</strong> ${Array.isArray(rooms) ? 'مصفوفة ✅' : 'كائن ⚠️'}</p>`;
+                html += `<p><strong>عدد القاعات:</strong> ${Array.isArray(rooms) ? rooms.length : Object.keys(rooms).length}</p>`;
+                
+                html += '<h3>القاعات الموجودة:</h3><ul style="text-align: right;">';
+                
+                if (Array.isArray(rooms)) {
+                    rooms.forEach(room => {
+                        const isDefault = defaultRooms.includes(room);
+                        html += `<li>${room} ${isDefault ? '✅' : '⚠️'}</li>`;
+                    });
+                } else {
+                    Object.values(rooms).forEach(room => {
+                        const roomName = typeof room === 'string' ? room : room.name || 'غير محدد';
+                        const isDefault = defaultRooms.includes(roomName);
+                        html += `<li>${roomName} ${isDefault ? '✅' : '⚠️'}</li>`;
+                    });
+                }
+                
+                html += '</ul>';
+                
+                // فحص القاعات المفقودة
+                const currentRooms = Array.isArray(rooms) ? rooms : Object.values(rooms).map(r => typeof r === 'string' ? r : r.name);
+                const missing = defaultRooms.filter(room => !currentRooms.includes(room));
+                
+                if (missing.length === 0) {
+                    html += '<div class="status success">🎉 جميع القاعات الافتراضية موجودة!</div>';
+                } else {
+                    html += `<div class="status warning">⚠️ قاعات مفقودة: ${missing.join(', ')}</div>`;
+                }
+                
+                showResults(html);
+                
+            } catch (error) {
+                showResults(`<div class="status error">❌ خطأ في التحليل: ${error.message}</div>`);
+            }
+        }
+
+        function clearAll() {
+            if (confirm('هل أنت متأكد من حذف جميع البيانات؟')) {
+                localStorage.removeItem('school_rooms');
+                localStorage.removeItem('school_reservations');
+                showStatus('✅ تم حذف جميع البيانات', 'success');
+                showResults('');
+            }
+        }
+
+        // فحص تلقائي عند التحميل
+        window.onload = function() {
+            checkStatus();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار سريع للمشاكل</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            direction: rtl;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #1b3767;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #2c5282;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .error { background: #ffe6e6; color: #cc0000; }
+        .success { background: #e6ffe6; color: #006600; }
+        .info { background: #e6f3ff; color: #0066cc; }
+    </style>
+</head>
+<body>
+    <h1>🔍 اختبار سريع للمشاكل</h1>
+    
+    <div class="test-section">
+        <h3>🧪 اختبار الإشعارات</h3>
+        <button onclick="testNotification()">اختبار الإشعار</button>
+        <div id="notification-status"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>🏢 اختبار القاعات</h3>
+        <button onclick="testRoomsData()">اختبار بيانات القاعات</button>
+        <div id="rooms-status"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>📊 اختبار DataManager</h3>
+        <button onclick="testDataManager()">اختبار dataManager</button>
+        <div id="datamanager-status"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>🔧 إصلاح سريع</h3>
+        <button onclick="fixRoomsData()">إصلاح بيانات القاعات</button>
+        <button onclick="clearAllData()">مسح جميع البيانات</button>
+        <div id="fix-status"></div>
+    </div>
+
+    <!-- تضمين Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
+    <script>
+        // إعداد Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDGpAHia_wEmrhnmYjrPf1n1TrAzwEtKG8",
+            authDomain: "zawiyah-76151.firebaseapp.com",
+            projectId: "zawiyah-76151",
+            storageBucket: "zawiyah-76151.firebasestorage.app",
+            messagingSenderId: "333165441127",
+            appId: "1:333165441127:web:ba2b3d3c39807ac788357c"
+        };
+        
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+        
+        // دالة إشعار بسيطة
+        function showSimpleNotification(message, type = 'info') {
+            // إزالة الإشعارات الموجودة
+            const existing = document.querySelectorAll('.floating-notification');
+            existing.forEach(n => n.remove());
+            
+            const notification = document.createElement('div');
+            notification.className = 'floating-notification';
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'error' ? '#ff4757' : type === 'success' ? '#2ed573' : '#3742fa'};
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                z-index: 9999;
+                font-weight: bold;
+                max-width: 300px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // أنيمشن الظهور
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // الإخفاء التلقائي
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.remove();
+                    }
+                }, 300);
+            }, 3000);
+        }
+        
+        function testNotification() {
+            const status = document.getElementById('notification-status');
+            status.innerHTML = '<div class="info">جاري اختبار الإشعارات...</div>';
+            
+            showSimpleNotification('هذا اختبار للإشعارات! 🎉', 'success');
+            
+            setTimeout(() => {
+                status.innerHTML = '<div class="success">✅ تم اختبار الإشعارات بنجاح</div>';
+            }, 1000);
+        }
+        
+        async function testRoomsData() {
+            const status = document.getElementById('rooms-status');
+            status.innerHTML = '<div class="info">جاري فحص بيانات القاعات...</div>';
+            
+            try {
+                // فحص localStorage
+                const localRooms = localStorage.getItem('school_rooms');
+                const localData = localRooms ? JSON.parse(localRooms) : null;
+                
+                // فحص Firebase
+                let firebaseData = null;
+                try {
+                    const docRef = await db.collection('school_data').doc('rooms').get();
+                    firebaseData = docRef.exists ? docRef.data() : null;
+                } catch (error) {
+                    console.error('خطأ Firebase:', error);
+                }
+                
+                let html = '<h4>نتائج الفحص:</h4>';
+                html += `<div class="${localData ? 'success' : 'error'}">localStorage: ${localData ? 'يحتوي على ' + (Array.isArray(localData) ? localData.length : 'بيانات') + ' عنصر' : 'فارغ'}</div>`;
+                html += `<div class="${firebaseData ? 'success' : 'error'}">Firebase: ${firebaseData ? 'يحتوي على بيانات' : 'فارغ أو غير متاح'}</div>`;
+                
+                if (localData) {
+                    html += '<div class="info">البيانات المحلية: ' + JSON.stringify(localData).substring(0, 100) + '...</div>';
+                }
+                
+                status.innerHTML = html;
+                
+            } catch (error) {
+                status.innerHTML = '<div class="error">خطأ في فحص البيانات: ' + error.message + '</div>';
+            }
+        }
+        
+        async function testDataManager() {
+            const status = document.getElementById('datamanager-status');
+            status.innerHTML = '<div class="info">جاري فحص dataManager...</div>';
+            
+            // محاولة تحميل dataManager
+            try {
+                const script = document.createElement('script');
+                script.src = 'dataManager.js';
+                document.head.appendChild(script);
+                
+                script.onload = () => {
+                    setTimeout(() => {
+                        if (window.dataManager) {
+                            status.innerHTML = '<div class="success">✅ dataManager متاح ومحمل</div>';
+                        } else {
+                            status.innerHTML = '<div class="error">❌ dataManager غير متاح</div>';
+                        }
+                    }, 500);
+                };
+                
+                script.onerror = () => {
+                    status.innerHTML = '<div class="error">❌ فشل في تحميل dataManager.js</div>';
+                };
+                
+            } catch (error) {
+                status.innerHTML = '<div class="error">خطأ في تحميل dataManager: ' + error.message + '</div>';
+            }
+        }
+        
+        async function fixRoomsData() {
+            const status = document.getElementById('fix-status');
+            status.innerHTML = '<div class="info">جاري إصلاح بيانات القاعات...</div>';
+            
+            try {
+                // إنشاء قاعات افتراضية
+                const defaultRooms = [
+                    'المختبر', 
+                    'قاعة الحاسوب', 
+                    'المكتبة', 
+                    'القاعة الرئيسية', 
+                    'القاعة الذكية', 
+                    'غرفة صفية'
+                ];
+                
+                // حفظ في localStorage
+                localStorage.setItem('school_rooms', JSON.stringify(defaultRooms));
+                localStorage.setItem('school_rooms_backup', JSON.stringify(defaultRooms));
+                localStorage.setItem('school_rooms_last_update', new Date().toISOString());
+                
+                // محاولة حفظ في Firebase
+                try {
+                    await db.collection('school_data').doc('rooms').set({
+                        rooms: defaultRooms,
+                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    status.innerHTML = '<div class="success">✅ تم إصلاح البيانات في localStorage و Firebase</div>';
+                    showSimpleNotification('تم إصلاح بيانات القاعات!', 'success');
+                } catch (firebaseError) {
+                    status.innerHTML = '<div class="success">✅ تم إصلاح البيانات في localStorage (Firebase غير متاح)</div>';
+                    showSimpleNotification('تم إصلاح البيانات محلياً', 'success');
+                }
+                
+            } catch (error) {
+                status.innerHTML = '<div class="error">خطأ في الإصلاح: ' + error.message + '</div>';
+            }
+        }
+        
+        function clearAllData() {
+            const status = document.getElementById('fix-status');
+            
+            if (confirm('هل أنت متأكد من مسح جميع البيانات؟')) {
+                // مسح localStorage
+                ['school_rooms', 'school_reservations', 'school_rooms_backup', 'school_reservations_backup'].forEach(key => {
+                    localStorage.removeItem(key);
+                });
+                
+                status.innerHTML = '<div class="success">✅ تم مسح جميع البيانات المحلية</div>';
+                showSimpleNotification('تم مسح البيانات', 'success');
+            }
+        }
+    </script>
+</body>
+</html>

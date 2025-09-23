@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار التزامن بين الصفحات</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f8f9fa;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1b3767;
+            text-align: center;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+        button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #218838;
+        }
+        button.test {
+            background: #17a2b8;
+        }
+        button.test:hover {
+            background: #138496;
+        }
+        .log {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 15px 0;
+        }
+        .links {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .links a {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .links a:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 اختبار التزامن بين الصفحات</h1>
+        
+        <div class="links">
+            <a href="rooms.html" target="_blank">🏢 فتح صفحة القاعات</a>
+            <a href="reservations.html" target="_blank">📅 فتح صفحة الحجوزات</a>
+        </div>
+
+        <div class="test-section">
+            <h3>🧪 اختبارات سريعة</h3>
+            <button class="test" onclick="testAddRoom()">إضافة قاعة اختبار</button>
+            <button class="test" onclick="testStorageEvent()">محاكاة حدث التخزين</button>
+            <button class="test" onclick="testCustomEvent()">إرسال حدث مخصص</button>
+            <button onclick="clearLog()">مسح السجل</button>
+            <button onclick="showCurrentRooms()">عرض القاعات الحالية</button>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 حالة البيانات</h3>
+            <div id="status"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📝 سجل الأحداث</h3>
+            <div id="log" class="log"></div>
+        </div>
+    </div>
+
+    <script>
+        let eventCounter = 0;
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString('ar-EG');
+            const logDiv = document.getElementById('log');
+            const color = {
+                'info': '#3498db',
+                'success': '#2ecc71',
+                'warning': '#f39c12',
+                'error': '#e74c3c'
+            }[type] || '#ecf0f1';
+            
+            logDiv.innerHTML += `<div style="color: ${color};">[${timestamp}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+            log('تم مسح السجل', 'info');
+        }
+
+        function showCurrentRooms() {
+            const rooms = localStorage.getItem('school_rooms');
+            if (rooms) {
+                try {
+                    const parsed = JSON.parse(rooms);
+                    log(`القاعات الحالية (${Array.isArray(parsed) ? parsed.length : 'كائن'}): ${JSON.stringify(parsed, null, 2)}`, 'info');
+                } catch (e) {
+                    log(`خطأ في تحليل البيانات: ${e.message}`, 'error');
+                }
+            } else {
+                log('لا توجد قاعات محفوظة', 'warning');
+            }
+            updateStatus();
+        }
+
+        function testAddRoom() {
+            eventCounter++;
+            const testRoomName = `قاعة اختبار ${eventCounter}`;
+            
+            log(`محاولة إضافة: ${testRoomName}`, 'info');
+            
+            // محاكاة إضافة قاعة
+            let currentRooms = [];
+            const saved = localStorage.getItem('school_rooms');
+            
+            if (saved) {
+                try {
+                    currentRooms = JSON.parse(saved);
+                    if (!Array.isArray(currentRooms)) {
+                        currentRooms = Object.values(currentRooms).map(r => typeof r === 'string' ? r : r.name);
+                    }
+                } catch (e) {
+                    log(`خطأ في قراءة البيانات: ${e.message}`, 'error');
+                    return;
+                }
+            }
+            
+            currentRooms.push(testRoomName);
+            localStorage.setItem('school_rooms', JSON.stringify(currentRooms));
+            
+            log(`تم حفظ القاعة محلياً: ${testRoomName}`, 'success');
+            
+            // إرسال الأحداث
+            testStorageEvent();
+            testCustomEvent(testRoomName);
+        }
+
+        function testStorageEvent() {
+            log('إرسال حدث تخزين (storage event)...', 'info');
+            
+            const rooms = localStorage.getItem('school_rooms');
+            window.dispatchEvent(new StorageEvent('storage', {
+                key: 'school_rooms',
+                newValue: rooms,
+                oldValue: null,
+                storageArea: localStorage,
+                url: window.location.href
+            }));
+            
+            log('✅ تم إرسال حدث التخزين', 'success');
+        }
+
+        function testCustomEvent(roomName = 'قاعة اختبار') {
+            log('إرسال حدث مخصص (custom event)...', 'info');
+            
+            window.dispatchEvent(new CustomEvent('roomsUpdated', {
+                detail: { 
+                    action: 'add', 
+                    roomName: roomName, 
+                    source: 'test',
+                    timestamp: new Date().toISOString() 
+                }
+            }));
+            
+            log(`✅ تم إرسال حدث مخصص للقاعة: ${roomName}`, 'success');
+        }
+
+        function updateStatus() {
+            const rooms = localStorage.getItem('school_rooms');
+            const reservations = localStorage.getItem('school_reservations');
+            
+            let statusHtml = '<h4>📊 حالة localStorage:</h4>';
+            statusHtml += `<p><strong>school_rooms:</strong> ${rooms ? '✅ موجود' : '❌ غير موجود'}</p>`;
+            statusHtml += `<p><strong>school_reservations:</strong> ${reservations ? '✅ موجود' : '❌ غير موجود'}</p>`;
+            
+            if (rooms) {
+                try {
+                    const parsed = JSON.parse(rooms);
+                    const count = Array.isArray(parsed) ? parsed.length : Object.keys(parsed).length;
+                    statusHtml += `<p><strong>عدد القاعات:</strong> ${count}</p>`;
+                } catch (e) {
+                    statusHtml += `<p style="color: red;"><strong>خطأ في البيانات:</strong> ${e.message}</p>`;
+                }
+            }
+            
+            document.getElementById('status').innerHTML = statusHtml;
+        }
+
+        // إعداد مستمعات الأحداث
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'school_rooms') {
+                log(`🔔 تم استقبال حدث تخزين: ${e.key}`, 'warning');
+            }
+        });
+
+        window.addEventListener('roomsUpdated', function(e) {
+            log(`🔔 تم استقبال حدث مخصص: ${JSON.stringify(e.detail)}`, 'warning');
+        });
+
+        // تهيئة الصفحة
+        window.onload = function() {
+            log('🚀 تم تحميل صفحة اختبار التزامن', 'info');
+            updateStatus();
+        };
+    </script>
+</body>
+</html>

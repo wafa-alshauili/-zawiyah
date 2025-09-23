@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار مدير البيانات الهجين</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 20px; 
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        .test-section { 
+            background: #f8f9fa; 
+            padding: 20px; 
+            margin: 15px 0; 
+            border-radius: 8px;
+            border-left: 4px solid #007acc;
+        }
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .status-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success { color: #28a745; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+        .warning { color: #ffc107; font-weight: bold; }
+        .info { color: #17a2b8; font-weight: bold; }
+        button { 
+            background: #007acc; 
+            color: white; 
+            border: none; 
+            padding: 12px 24px; 
+            margin: 8px; 
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        button:hover { background: #005a9e; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .test-data {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        #results { 
+            background: white; 
+            border: 1px solid #ddd; 
+            padding: 20px; 
+            margin-top: 20px; 
+            border-radius: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 اختبار مدير البيانات الهجين</h1>
+        <p>اختبار شامل لنظام localStorage + Firebase مع التبديل التلقائي</p>
+
+        <!-- معلومات الحالة -->
+        <div class="test-section">
+            <h2>📊 حالة النظام</h2>
+            <div class="status-grid">
+                <div class="status-card">
+                    <strong>Firebase:</strong>
+                    <div id="firebase-status">جاري التحقق...</div>
+                </div>
+                <div class="status-card">
+                    <strong>localStorage:</strong>
+                    <div id="localstorage-status">جاري التحقق...</div>
+                </div>
+                <div class="status-card">
+                    <strong>مدير البيانات:</strong>
+                    <div id="datamanager-status">جاري التحقق...</div>
+                </div>
+                <div class="status-card">
+                    <strong>آخر مزامنة:</strong>
+                    <div id="sync-status">لا توجد</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- اختبارات القاعات -->
+        <div class="test-section">
+            <h2>🏫 اختبارات القاعات</h2>
+            <button onclick="testAddRoom()">إضافة قاعة تجريبية</button>
+            <button onclick="testGetRooms()">قراءة القاعات</button>
+            <button onclick="testUpdateRoom()">تعديل قاعة</button>
+            <button onclick="testDeleteRoom()">حذف قاعة</button>
+            <button onclick="testRoomsSync()">مزامنة القاعات</button>
+            
+            <div class="test-data" id="rooms-data">
+                لا توجد بيانات قاعات حتى الآن
+            </div>
+        </div>
+
+        <!-- اختبارات الحجوزات -->
+        <div class="test-section">
+            <h2>📅 اختبارات الحجوزات</h2>
+            <button onclick="testAddReservation()">إضافة حجز تجريبي</button>
+            <button onclick="testGetReservations()">قراءة الحجوزات</button>
+            <button onclick="testUpdateReservation()">تعديل حجز</button>
+            <button onclick="testDeleteReservation()">حذف حجز</button>
+            <button onclick="testReservationsSync()">مزامنة الحجوزات</button>
+            
+            <div class="test-data" id="reservations-data">
+                لا توجد بيانات حجوزات حتى الآن
+            </div>
+        </div>
+
+        <!-- اختبارات المزامنة والتراجع -->
+        <div class="test-section">
+            <h2>🔄 اختبارات المزامنة والتراجع</h2>
+            <button onclick="testFirebaseDisable()">محاكاة فشل Firebase</button>
+            <button onclick="testFirebaseRestore()">استعادة Firebase</button>
+            <button onclick="testForceSync()">فرض المزامنة الكاملة</button>
+            <button onclick="testConflictResolution()">اختبار حل التعارضات</button>
+            <button onclick="testBackupRestore()">اختبار الاستعادة الاحتياطية</button>
+            
+            <div class="progress-bar" id="sync-progress" style="display:none;">
+                <div class="progress-fill" id="sync-progress-fill"></div>
+            </div>
+        </div>
+
+        <!-- تشخيص النظام -->
+        <div class="test-section">
+            <h2>🔍 تشخيص النظام</h2>
+            <button onclick="showDiagnostics()">عرض التشخيص الكامل</button>
+            <button onclick="clearAllData()">مسح جميع البيانات</button>
+            <button onclick="resetSystem()">إعادة تعيين النظام</button>
+        </div>
+
+        <!-- نتائج الاختبارات -->
+        <div id="results"></div>
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+    <script>
+        // إعدادات Firebase - نفس الإعدادات من النظام الأساسي
+        window.FIREBASE_ENABLED = true;
+        window.FIREBASE_READY = false;
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCddo_kfYs8wO_xzZgf2WsWDvBWW8wC8rE",
+            authDomain: "zawiyah-76151.firebaseapp.com",
+            projectId: "zawiyah-76151",
+            storageBucket: "zawiyah-76151.appspot.com",
+            messagingSenderId: "259480775839",
+            appId: "1:259480775839:web:0a95d39bfeb45f4c3abd83"
+        };
+
+        // تهيئة Firebase
+        try {
+            if (window.FIREBASE_ENABLED && typeof firebase !== 'undefined') {
+                firebase.initializeApp(firebaseConfig);
+                window.db = firebase.firestore();
+                window.FIREBASE_READY = true;
+            }
+        } catch (error) {
+            console.warn('⚠️ فشل في تهيئة Firebase:', error);
+            window.FIREBASE_ENABLED = false;
+            window.FIREBASE_READY = false;
+        }
+
+        // دوال المساعدة
+        function isFirebaseReady() {
+            return window.FIREBASE_ENABLED && window.FIREBASE_READY && window.db;
+        }
+
+        function disableFirebase() {
+            window.FIREBASE_ENABLED = false;
+            window.FIREBASE_READY = false;
+        }
+
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const time = new Date().toLocaleTimeString();
+            const className = type === 'success' ? 'success' : 
+                            type === 'error' ? 'error' : 
+                            type === 'warning' ? 'warning' : 'info';
+            
+            results.innerHTML += `<div><span class="${className}">${time}: ${message}</span></div>`;
+            results.scrollTop = results.scrollHeight;
+            console.log(message);
+        }
+
+        function updateStatus(element, status, type) {
+            const statusElement = document.getElementById(element);
+            const className = type === 'success' ? 'success' : 
+                            type === 'error' ? 'error' : 
+                            type === 'warning' ? 'warning' : 'info';
+            statusElement.innerHTML = `<span class="${className}">${status}</span>`;
+        }
+
+        function updateProgress(percentage) {
+            const progressBar = document.getElementById('sync-progress');
+            const progressFill = document.getElementById('sync-progress-fill');
+            
+            if (percentage > 0) {
+                progressBar.style.display = 'block';
+                progressFill.style.width = percentage + '%';
+            } else {
+                progressBar.style.display = 'none';
+            }
+        }
+    </script>
+
+    <!-- تحميل مدير البيانات -->
+    <script src="dataManager.js"></script>
+
+    <script>
+        let testRoomId = 'test_room_' + Date.now();
+        let testReservationId = 'test_reservation_' + Date.now();
+
+        // تهيئة الصفحة
+        document.addEventListener('DOMContentLoaded', async function() {
+            log('🔄 بدء تهيئة صفحة الاختبار...');
+            
+            // انتظار تهيئة مدير البيانات
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            updateSystemStatus();
+            
+            // تحديث الحالة كل 5 ثواني
+            setInterval(updateSystemStatus, 5000);
+        });
+
+        function updateSystemStatus() {
+            // حالة Firebase
+            if (isFirebaseReady()) {
+                updateStatus('firebase-status', 'متصل ويعمل', 'success');
+            } else {
+                updateStatus('firebase-status', 'غير متاح', 'warning');
+            }
+
+            // حالة localStorage
+            try {
+                localStorage.setItem('test', 'test');
+                localStorage.removeItem('test');
+                updateStatus('localstorage-status', 'يعمل بشكل صحيح', 'success');
+            } catch (error) {
+                updateStatus('localstorage-status', 'خطأ: ' + error.message, 'error');
+            }
+
+            // حالة مدير البيانات
+            if (window.dataManager && window.dataManager.isInitialized) {
+                const diagnostics = window.dataManager.getDiagnostics();
+                updateStatus('datamanager-status', 'جاهز ومهيأ', 'success');
+                
+                const syncStatus = diagnostics.syncStatus;
+                if (syncStatus.status === 'success') {
+                    updateStatus('sync-status', 'نجحت - ' + new Date(syncStatus.timestamp).toLocaleTimeString(), 'success');
+                } else if (syncStatus.status === 'failed') {
+                    updateStatus('sync-status', 'فشل - ' + (syncStatus.error || 'غير محدد'), 'error');
+                } else {
+                    updateStatus('sync-status', 'لم تتم بعد', 'info');
+                }
+            } else {
+                updateStatus('datamanager-status', 'لم يتم تهيئته بعد', 'warning');
+            }
+        }
+
+        // اختبارات القاعات
+        async function testAddRoom() {
+            log('🔄 اختبار إضافة قاعة تجريبية...');
+            updateProgress(20);
+
+            const roomData = {
+                id: testRoomId,
+                name: 'قاعة اختبار ' + Math.floor(Math.random() * 100),
+                capacity: Math.floor(Math.random() * 50) + 20,
+                location: 'الطابق الأول',
+                equipment: ['مكيف', 'بروجيكتر', 'سبورة ذكية'],
+                created: new Date().toISOString(),
+                lastModified: new Date().toISOString()
+            };
+
+            try {
+                const rooms = await window.dataManager.getData('rooms');
+                rooms[testRoomId] = roomData;
+                
+                const success = await window.dataManager.saveData('rooms', rooms);
+                updateProgress(100);
+                
+                if (success) {
+                    log(`✅ تم إضافة القاعة بنجاح: ${roomData.name}`, 'success');
+                    await updateRoomsDisplay();
+                } else {
+                    log('❌ فشل في إضافة القاعة', 'error');
+                }
+            } catch (error) {
+                log(`❌ خطأ في إضافة القاعة: ${error.message}`, 'error');
+            }
+            
+            updateProgress(0);
+        }
+
+        async function testGetRooms() {
+            log('🔄 اختبار قراءة القاعات...');
+            
+            try {
+                const rooms = await window.dataManager.getData('rooms');
+                const roomCount = Object.keys(rooms).length;
+                
+                log(`✅ تم قراءة ${roomCount} قاعة بنجاح`, 'success');
+                await updateRoomsDisplay();
+            } catch (error) {
+                log(`❌ خطأ في قراءة القاعات: ${error.message}`, 'error');
+            }
+        }
+
+        async function testUpdateRoom() {
+            log('🔄 اختبار تعديل قاعة...');
+            
+            try {
+                const rooms = await window.dataManager.getData('rooms');
+                
+                if (rooms[testRoomId]) {
+                    rooms[testRoomId].capacity = Math.floor(Math.random() * 50) + 20;
+                    rooms[testRoomId].lastModified = new Date().toISOString();
+                    rooms[testRoomId].updated = true;
+                    
+                    const success = await window.dataManager.saveData('rooms', rooms);
+                    
+                    if (success) {
+                        log(`✅ تم تعديل القاعة بنجاح - سعة جديدة: ${rooms[testRoomId].capacity}`, 'success');
+                        await updateRoomsDisplay();
+                    } else {
+                        log('❌ فشل في تعديل القاعة', 'error');
+                    }
+                } else {
+                    log('⚠️ القاعة غير موجودة للتعديل', 'warning');
+                }
+            } catch (error) {
+                log(`❌ خطأ في تعديل القاعة: ${error.message}`, 'error');
+            }
+        }
+
+        async function testDeleteRoom() {
+            log('🔄 اختبار حذف قاعة...');
+            
+            try {
+                const rooms = await window.dataManager.getData('rooms');
+                
+                if (rooms[testRoomId]) {
+                    delete rooms[testRoomId];
+                    
+                    const success = await window.dataManager.saveData('rooms', rooms);
+                    
+                    if (success) {
+                        log('✅ تم حذف القاعة بنجاح', 'success');
+                        await updateRoomsDisplay();
+                    } else {
+                        log('❌ فشل في حذف القاعة', 'error');
+                    }
+                } else {
+                    log('⚠️ القاعة غير موجودة للحذف', 'warning');
+                }
+            } catch (error) {
+                log(`❌ خطأ في حذف القاعة: ${error.message}`, 'error');
+            }
+        }
+
+        async function testRoomsSync() {
+            log('🔄 اختبار مزامنة القاعات مع Firebase...');
+            updateProgress(30);
+            
+            if (!isFirebaseReady()) {
+                log('⚠️ Firebase غير متاح للمزامنة', 'warning');
+                updateProgress(0);
+                return;
+            }
+
+            try {
+                const rooms = await window.dataManager.getData('rooms');
+                updateProgress(60);
+                
+                const success = await window.dataManager.saveToFirebase('rooms', rooms);
+                updateProgress(100);
+                
+                if (success) {
+                    log('✅ تمت مزامنة القاعات مع Firebase بنجاح', 'success');
+                } else {
+                    log('❌ فشل في مزامنة القاعات مع Firebase', 'error');
+                }
+            } catch (error) {
+                log(`❌ خطأ في مزامنة القاعات: ${error.message}`, 'error');
+            }
+            
+            updateProgress(0);
+        }
+
+        async function updateRoomsDisplay() {
+            try {
+                const rooms = await window.dataManager.getData('rooms');
+                const roomsData = document.getElementById('rooms-data');
+                
+                if (Object.keys(rooms).length === 0) {
+                    roomsData.textContent = 'لا توجد قاعات محفوظة';
+                } else {
+                    roomsData.innerHTML = '<pre>' + JSON.stringify(rooms, null, 2) + '</pre>';
+                }
+            } catch (error) {
+                document.getElementById('rooms-data').textContent = 'خطأ في عرض البيانات';
+            }
+        }
+
+        // اختبارات الحجوزات
+        async function testAddReservation() {
+            log('🔄 اختبار إضافة حجز تجريبي...');
+            
+            const reservationData = {
+                id: testReservationId,
+                room: testRoomId,
+                subject: 'مادة اختبار',
+                teacher: 'أ. اختبار',
+                grade: '10',
+                section: 'أ',
+                date: new Date().toISOString().split('T')[0],
+                time: '08:00-09:00',
+                phone: '1234567890',
+                created: new Date().toISOString(),
+                lastModified: new Date().toISOString()
+            };
+
+            try {
+                const reservations = await window.dataManager.getData('reservations');
+                reservations.push(reservationData);
+                
+                const success = await window.dataManager.saveData('reservations', reservations);
+                
+                if (success) {
+                    log(`✅ تم إضافة الحجز بنجاح: ${reservationData.subject}`, 'success');
+                    await updateReservationsDisplay();
+                } else {
+                    log('❌ فشل في إضافة الحجز', 'error');
+                }
+            } catch (error) {
+                log(`❌ خطأ في إضافة الحجز: ${error.message}`, 'error');
+            }
+        }
+
+        async function testGetReservations() {
+            log('🔄 اختبار قراءة الحجوزات...');
+            
+            try {
+                const reservations = await window.dataManager.getData('reservations');
+                
+                log(`✅ تم قراءة ${reservations.length} حجز بنجاح`, 'success');
+                await updateReservationsDisplay();
+            } catch (error) {
+                log(`❌ خطأ في قراءة الحجوزات: ${error.message}`, 'error');
+            }
+        }
+
+        async function updateReservationsDisplay() {
+            try {
+                const reservations = await window.dataManager.getData('reservations');
+                const reservationsData = document.getElementById('reservations-data');
+                
+                if (reservations.length === 0) {
+                    reservationsData.textContent = 'لا توجد حجوزات محفوظة';
+                } else {
+                    reservationsData.innerHTML = '<pre>' + JSON.stringify(reservations, null, 2) + '</pre>';
+                }
+            } catch (error) {
+                document.getElementById('reservations-data').textContent = 'خطأ في عرض البيانات';
+            }
+        }
+
+        // اختبارات المزامنة والتراجع
+        async function testFirebaseDisable() {
+            log('🔄 محاكاة فشل Firebase...');
+            
+            disableFirebase();
+            if (window.dataManager) {
+                window.dataManager.disableFirebase();
+            }
+            
+            updateSystemStatus();
+            log('⚠️ تم إيقاف Firebase، النظام يعمل الآن على localStorage فقط', 'warning');
+        }
+
+        async function testFirebaseRestore() {
+            log('🔄 استعادة Firebase...');
+            
+            window.FIREBASE_ENABLED = true;
+            if (window.db) {
+                window.FIREBASE_READY = true;
+                if (window.dataManager) {
+                    window.dataManager.checkFirebaseAvailability();
+                }
+            }
+            
+            updateSystemStatus();
+            log('✅ تمت استعادة Firebase', 'success');
+        }
+
+        async function testForceSync() {
+            log('🔄 فرض المزامنة الكاملة...');
+            updateProgress(10);
+            
+            try {
+                if (!window.dataManager) {
+                    throw new Error('مدير البيانات غير متاح');
+                }
+                
+                updateProgress(50);
+                const success = await window.dataManager.forceSyncAll();
+                updateProgress(100);
+                
+                if (success) {
+                    log('✅ اكتملت المزامنة الكاملة بنجاح', 'success');
+                } else {
+                    log('❌ فشل في المزامنة الكاملة', 'error');
+                }
+            } catch (error) {
+                log(`❌ خطأ في فرض المزامنة: ${error.message}`, 'error');
+            }
+            
+            updateProgress(0);
+            updateSystemStatus();
+        }
+
+        async function showDiagnostics() {
+            log('🔍 عرض التشخيص الكامل للنظام...');
+            
+            try {
+                if (window.dataManager) {
+                    const diagnostics = window.dataManager.getDiagnostics();
+                    
+                    log('📊 معلومات التشخيص:', 'info');
+                    log(`- النظام مُهيأ: ${diagnostics.isInitialized ? 'نعم' : 'لا'}`, 'info');
+                    log(`- Firebase متاح: ${diagnostics.firebaseAvailable ? 'نعم' : 'لا'}`, 'info');
+                    log(`- مزامنة جارية: ${diagnostics.syncInProgress ? 'نعم' : 'لا'}`, 'info');
+                    log(`- آخر مزامنة: ${diagnostics.lastSyncTime || 'لا توجد'}`, 'info');
+                    log(`- حالة المزامنة: ${diagnostics.syncStatus.status}`, 'info');
+                    log(`- مفاتيح localStorage: ${diagnostics.localStorageKeys.length}`, 'info');
+                    
+                    document.getElementById('results').innerHTML += 
+                        '<div class="test-data"><pre>' + JSON.stringify(diagnostics, null, 2) + '</pre></div>';
+                } else {
+                    log('❌ مدير البيانات غير متاح للتشخيص', 'error');
+                }
+            } catch (error) {
+                log(`❌ خطأ في التشخيص: ${error.message}`, 'error');
+            }
+        }
+
+        async function clearAllData() {
+            if (!confirm('هل أنت متأكد من مسح جميع البيانات؟')) return;
+            
+            log('🔄 مسح جميع البيانات...');
+            
+            try {
+                // مسح localStorage
+                Object.keys(localStorage).forEach(key => {
+                    if (key.startsWith('school_') || key.startsWith('firebase_')) {
+                        localStorage.removeItem(key);
+                    }
+                });
+                
+                // مسح البيانات من الذاكرة
+                if (window.dataManager) {
+                    await window.dataManager.init();
+                }
+                
+                await updateRoomsDisplay();
+                await updateReservationsDisplay();
+                updateSystemStatus();
+                
+                log('✅ تم مسح جميع البيانات بنجاح', 'success');
+            } catch (error) {
+                log(`❌ خطأ في مسح البيانات: ${error.message}`, 'error');
+            }
+        }
+
+        async function resetSystem() {
+            if (!confirm('هل أنت متأكد من إعادة تعيين النظام؟')) return;
+            
+            log('🔄 إعادة تعيين النظام...');
+            
+            try {
+                await clearAllData();
+                
+                // إعادة تهيئة مدير البيانات
+                if (window.dataManager) {
+                    window.dataManager = new DataManager();
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+                
+                updateSystemStatus();
+                log('✅ تمت إعادة تعيين النظام بنجاح', 'success');
+            } catch (error) {
+                log(`❌ خطأ في إعادة تعيين النظام: ${error.message}`, 'error');
+            }
+        }
+
+        // باقي اختبارات الحجوزات
+        async function testUpdateReservation() {
+            log('🔄 اختبار تعديل حجز...');
+            
+            try {
+                const reservations = await window.dataManager.getData('reservations');
+                const reservationIndex = reservations.findIndex(r => r.id === testReservationId);
+                
+                if (reservationIndex !== -1) {
+                    reservations[reservationIndex].subject = 'مادة معدلة';
+                    reservations[reservationIndex].lastModified = new Date().toISOString();
+                    
+                    const success = await window.dataManager.saveData('reservations', reservations);
+                    
+                    if (success) {
+                        log('✅ تم تعديل الحجز بنجاح', 'success');
+                        await updateReservationsDisplay();
+                    } else {
+                        log('❌ فشل في تعديل الحجز', 'error');
+                    }
+                } else {
+                    log('⚠️ الحجز غير موجود للتعديل', 'warning');
+                }
+            } catch (error) {
+                log(`❌ خطأ في تعديل الحجز: ${error.message}`, 'error');
+            }
+        }
+
+        async function testDeleteReservation() {
+            log('🔄 اختبار حذف حجز...');
+            
+            try {
+                const reservations = await window.dataManager.getData('reservations');
+                const reservationIndex = reservations.findIndex(r => r.id === testReservationId);
+                
+                if (reservationIndex !== -1) {
+                    reservations.splice(reservationIndex, 1);
+                    
+                    const success = await window.dataManager.saveData('reservations', reservations);
+                    
+                    if (success) {
+                        log('✅ تم حذف الحجز بنجاح', 'success');
+                        await updateReservationsDisplay();
+                    } else {
+                        log('❌ فشل في حذف الحجز', 'error');
+                    }
+                } else {
+                    log('⚠️ الحجز غير موجود للحذف', 'warning');
+                }
+            } catch (error) {
+                log(`❌ خطأ في حذف الحجز: ${error.message}`, 'error');
+            }
+        }
+
+        async function testReservationsSync() {
+            log('🔄 اختبار مزامنة الحجوزات مع Firebase...');
+            updateProgress(30);
+            
+            if (!isFirebaseReady()) {
+                log('⚠️ Firebase غير متاح للمزامنة', 'warning');
+                updateProgress(0);
+                return;
+            }
+
+            try {
+                const reservations = await window.dataManager.getData('reservations');
+                updateProgress(60);
+                
+                const success = await window.dataManager.saveToFirebase('reservations', reservations);
+                updateProgress(100);
+                
+                if (success) {
+                    log('✅ تمت مزامنة الحجوزات مع Firebase بنجاح', 'success');
+                } else {
+                    log('❌ فشل في مزامنة الحجوزات مع Firebase', 'error');
+                }
+            } catch (error) {
+                log(`❌ خطأ في مزامنة الحجوزات: ${error.message}`, 'error');
+            }
+            
+            updateProgress(0);
+        }
+
+        async function testConflictResolution() {
+            log('🔄 اختبار حل التعارضات...');
+            
+            try {
+                // محاكاة تعارض في البيانات
+                const rooms = await window.dataManager.getData('rooms');
+                const conflictRoomId = 'conflict_room_' + Date.now();
+                
+                // إضافة قاعة محلياً
+                rooms[conflictRoomId] = {
+                    id: conflictRoomId,
+                    name: 'قاعة تعارض محلية',
+                    capacity: 30,
+                    lastModified: new Date().toISOString()
+                };
+                
+                await window.dataManager.saveToLocalStorage('rooms', rooms);
+                log('✅ تم إنشاء بيانات محلية متعارضة', 'success');
+                
+                // محاكاة بيانات مختلفة في Firebase
+                if (isFirebaseReady()) {
+                    const firebaseRooms = { ...rooms };
+                    firebaseRooms[conflictRoomId].name = 'قاعة تعارض Firebase';
+                    firebaseRooms[conflictRoomId].capacity = 40;
+                    
+                    await window.dataManager.saveToFirebase('rooms', firebaseRooms);
+                    log('✅ تم إنشاء بيانات Firebase متعارضة', 'success');
+                    
+                    // محاولة حل التعارض
+                    await window.dataManager.syncDataInBackground('rooms');
+                    log('✅ تم تشغيل آلية حل التعارضات', 'success');
+                }
+                
+                await updateRoomsDisplay();
+            } catch (error) {
+                log(`❌ خطأ في اختبار حل التعارضات: ${error.message}`, 'error');
+            }
+        }
+
+        async function testBackupRestore() {
+            log('🔄 اختبار الاستعادة الاحتياطية...');
+            
+            try {
+                // إنشاء بيانات تجريبية
+                const testData = {
+                    backup_test: {
+                        name: 'قاعة نسخ احتياطي',
+                        capacity: 25
+                    }
+                };
+                
+                // حفظ البيانات
+                await window.dataManager.saveToLocalStorage('rooms', testData);
+                log('✅ تم إنشاء بيانات للنسخ الاحتياطي', 'success');
+                
+                // محاكاة خطأ وإفساد البيانات
+                localStorage.setItem('school_rooms', 'invalid json data');
+                log('⚠️ تم إفساد البيانات لمحاكاة الخطأ', 'warning');
+                
+                // محاولة الاستعادة
+                const restoredData = window.dataManager.restoreFromBackup('rooms');
+                
+                if (restoredData && restoredData.backup_test) {
+                    log('✅ تمت الاستعادة من النسخة الاحتياطية بنجاح', 'success');
+                } else {
+                    log('❌ فشل في الاستعادة من النسخة الاحتياطية', 'error');
+                }
+                
+                await updateRoomsDisplay();
+            } catch (error) {
+                log(`❌ خطأ في اختبار النسخ الاحتياطي: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>
