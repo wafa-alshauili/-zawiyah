@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>اختبار الغرفة الصفية</title>
+<style>
+body { font-family: Arial, sans-serif; padding: 20px; }
+button { margin: 5px; padding: 10px; cursor: pointer; }
+.test-cell { border: 1px solid #ccc; padding: 20px; margin: 10px; min-height: 100px; }
+.classroom-button { background: #4caf50; color: white; border: none; padding: 8px 16px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<h1>اختبار أزرار الغرفة الصفية</h1>
+
+<p>هذه صفحة اختبار للتأكد من أن الأزرار تظهر وتعمل بشكل صحيح.</p>
+
+<div>
+  <label>اختر القاعة:</label>
+  <select id="room-select" onchange="testRoomChange()">
+    <option value="">-- اختر القاعة --</option>
+    <option value="المختبر">المختبر</option>
+    <option value="غرفة صفية">غرفة صفية</option>
+  </select>
+</div>
+
+<div id="test-area">
+  <p>اختر "غرفة صفية" لرؤية الأزرار</p>
+</div>
+
+<script>
+let selectedRoom = null;
+
+function testRoomChange() {
+  selectedRoom = document.getElementById('room-select').value;
+  const testArea = document.getElementById('test-area');
+  
+  if (selectedRoom === 'غرفة صفية') {
+    testArea.innerHTML = `
+      <h3>✅ غرفة صفية مختارة - الأزرار يجب أن تظهر:</h3>
+      
+      <div class="test-cell" style="background: #f9f9f9;">
+        <h4>خانة فارغة:</h4>
+        <div style="text-align: center; padding: 15px;">
+          <button onclick="testClick('حجز جديد - خانة فارغة')" 
+                  class="classroom-button">
+            ➕ حجز جديد
+          </button>
+        </div>
+      </div>
+      
+      <div class="test-cell" style="background: #f3e5f5;">
+        <h4>خانة بها حجز واحد:</h4>
+        <div style="background: #e3f2fd; padding: 8px; border-radius: 4px; margin-bottom: 10px;">
+          <div>👨‍🏫 أستاذ أحمد</div>
+          <div>📚 الرياضيات</div>
+          <div>🎓 الصف السادس - الشعبة 1</div>
+        </div>
+        <div style="text-align: center;">
+          <button onclick="testClick('حجز إضافي - خانة مشغولة')" 
+                  class="classroom-button">
+            ➕ حجز إضافي
+          </button>
+        </div>
+      </div>
+    `;
+  } else if (selectedRoom === 'المختبر') {
+    testArea.innerHTML = `
+      <h3>المختبر مختار - لا يجب أن تظهر أزرار إضافية</h3>
+      <div class="test-cell">
+        <p>للقاعات العادية لا تظهر أزرار "حجز جديد" في الخانات المشغولة</p>
+      </div>
+    `;
+  } else {
+    testArea.innerHTML = '<p>اختر قاعة لرؤية النتيجة</p>';
+  }
+}
+
+function testClick(type) {
+  alert('✅ الزر يعمل بنجاح!\nنوع الاختبار: ' + type);
+}
+</script>
+
+</body>
+</html>

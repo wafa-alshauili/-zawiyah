@@ -167,7 +167,7 @@ let reservations = [];
 function loadData() {
   // تحميل القاعات
   const savedRooms = localStorage.getItem('school_rooms');
-  const rooms = savedRooms ? JSON.parse(savedRooms) : ['المختبر', 'قاعة الحاسوب', 'المكتبة', 'القاعة الرئيسية'];
+  const rooms = savedRooms ? JSON.parse(savedRooms) : ['المختبر', 'قاعة الحاسوب', 'المكتبة', 'القاعة الرئيسية', 'القاعة الذكية', 'غرفة صفية'];
   
   // ملء قائمة القاعات
   const roomSelect = document.getElementById('room-select');
