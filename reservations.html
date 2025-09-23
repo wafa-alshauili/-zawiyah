@@ -298,6 +298,20 @@ function showReservationTable() {
         });
         
         cellContent += '</div>';
+        
+        // إضافة زر "حجز جديد" للغرفة الصفية
+        if (selectedRoom === 'غرفة صفية') {
+          cellContent += `
+            <div style="text-align: center; margin-top: 8px;">
+              <button onclick="bookNewSlotInClassroom('${timeSlot}')" 
+                      style="background: #4caf50; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 0.8em; cursor: pointer; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                ➕ حجز جديد
+              </button>
+            </div>
+          `;
+        }
+        
+        cellContent += '</div>';
         cell.innerHTML = cellContent;
         cell.style.backgroundColor = '#fff3e0';
         cell.onclick = null;
@@ -308,7 +322,7 @@ function showReservationTable() {
         const sectionText = reservation.section ? `الشعبة ${reservation.section}` : '';
         const phoneText = reservation.phone ? `📱 ${reservation.phone}` : '';
         
-        cell.innerHTML = `
+        let cellContent = `
           <div style="background: #e3f2fd; padding: 8px; border-radius: 4px; font-size: 0.85em; line-height: 1.3;">
             <div style="font-weight: bold; color: #1565c0; margin-bottom: 2px;">👨‍🏫 ${reservation.teacher}</div>
             <div style="color: #1976d2; margin-bottom: 2px;">📚 ${reservation.subject}</div>
@@ -320,6 +334,20 @@ function showReservationTable() {
             </button>
           </div>
         `;
+        
+        // إضافة زر "حجز جديد" للغرفة الصفية حتى لو كان هناك حجز واحد
+        if (selectedRoom === 'غرفة صفية') {
+          cellContent += `
+            <div style="text-align: center; margin-top: 6px;">
+              <button onclick="bookNewSlotInClassroom('${reservation.timeSlot}')" 
+                      style="background: #4caf50; color: white; border: none; padding: 4px 8px; border-radius: 3px; font-size: 0.75em; cursor: pointer; font-weight: bold; width: 100%;">
+                ➕ حجز إضافي
+              </button>
+            </div>
+          `;
+        }
+        
+        cell.innerHTML = cellContent;
         cell.style.backgroundColor = '#f3e5f5';
         cell.onclick = null;
       }
@@ -329,9 +357,55 @@ function showReservationTable() {
 
 // حجز فترة زمنية
 function bookSlot(cell) {
-  if (cell.innerHTML.trim()) return; // محجوز بالفعل
+  // للغرفة الصفية، السماح بالحجز حتى لو كانت مشغولة
+  if (selectedRoom === 'غرفة صفية') {
+    openBookingModal(cell);
+    return;
+  }
+  
+  // للقاعات الأخرى، منع الحجز إذا كانت مشغولة
+  if (cell.innerHTML.trim()) {
+    alert('⚠️ هذه الفترة محجوزة بالفعل');
+    return;
+  }
   
   openBookingModal(cell);
+}
+
+// حجز جديد في الغرفة الصفية
+function bookNewSlotInClassroom(timeSlot) {
+  if (selectedRoom !== 'غرفة صفية') {
+    alert('⚠️ هذه الوظيفة متاحة فقط للغرفة الصفية');
+    return;
+  }
+  
+  // إنشاء خانة وهمية للاستفادة من النظام الحالي
+  const dummyCell = document.createElement('td');
+  dummyCell.setAttribute('data-time', timeSlot);
+  dummyCell.setAttribute('data-day', getCurrentDayFromTimeSlot(timeSlot));
+  
+  currentBookingCell = dummyCell;
+  openBookingModal(dummyCell);
+}
+
+// دالة مساعدة لاستخراج اليوم من الفترة الزمنية
+function getCurrentDayFromTimeSlot(timeSlot) {
+  // البحث عن أول حجز في نفس الفترة لمعرفة اليوم
+  const existingReservation = reservations.find(r => 
+    r.room === selectedRoom && r.timeSlot === timeSlot
+  );
+  
+  if (existingReservation) {
+    const date = new Date(existingReservation.date);
+    const weekDates = getWeekDates(currentWeek);
+    const dayIndex = weekDates.findIndex(weekDate => 
+      weekDate.toDateString() === date.toDateString()
+    );
+    return dayIndex;
+  }
+  
+  // إذا لم نجد حجز موجود، نستخدم اليوم الحالي
+  return new Date().getDay();
 }
 
 // إلغاء حجز
@@ -549,7 +623,12 @@ function submitBooking(event) {
   showReservationTable();
   closeBookingModal();
   
-  alert(`✅ تم حجز القاعة بنجاح!\n👨‍🏫 المعلم: ${teacherName}\n📱 الهاتف: ${teacherPhone}\n🎓 الصف: ${grade} - الشعبة ${section}\n📚 المادة: ${subject}`);
+  // رسالة نجاح مخصصة حسب نوع القاعة
+  if (selectedRoom === 'غرفة صفية' && existingReservations.length > 0) {
+    alert(`✅ تم إضافة حجز إضافي بنجاح!\n🏫 القاعة: ${selectedRoom}\n👨‍🏫 المعلم: ${teacherName}\n📱 الهاتف: ${teacherPhone}\n🎓 الصف: ${grade} - الشعبة ${section}\n📚 المادة: ${subject}\n\n📝 ملاحظة: يوجد ${existingReservations.length} حجز آخر في نفس الوقت`);
+  } else {
+    alert(`✅ تم حجز القاعة بنجاح!\n🏫 القاعة: ${selectedRoom}\n👨‍🏫 المعلم: ${teacherName}\n📱 الهاتف: ${teacherPhone}\n🎓 الصف: ${grade} - الشعبة ${section}\n📚 المادة: ${subject}`);
+  }
 }
 
 function getTimeSlotText(timeSlot) {
