@@ -240,8 +240,22 @@ function showReservationTable() {
   // مسح الحجوزات السابقة
   const cells = document.querySelectorAll('td[data-time]');
   cells.forEach(cell => {
-    cell.innerHTML = '';
-    cell.style.backgroundColor = '';
+    // للغرفة الصفية، إضافة زر حجز جديد حتى في الخانات الفارغة
+    if (selectedRoom === 'غرفة صفية') {
+      const timeSlot = cell.getAttribute('data-time');
+      cell.innerHTML = `
+        <div style="text-align: center; padding: 15px;">
+          <button onclick="bookNewSlotInClassroom('${timeSlot}')" 
+                  style="background: #4caf50; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-size: 0.85em; cursor: pointer; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+            ➕ حجز جديد
+          </button>
+        </div>
+      `;
+      cell.style.backgroundColor = '#f9f9f9';
+    } else {
+      cell.innerHTML = '';
+      cell.style.backgroundColor = '';
+    }
     cell.style.cursor = 'pointer';
     cell.onclick = () => bookSlot(cell);
   });
@@ -339,7 +353,7 @@ function showReservationTable() {
         if (selectedRoom === 'غرفة صفية') {
           cellContent += `
             <div style="text-align: center; margin-top: 6px;">
-              <button onclick="bookNewSlotInClassroom('${reservation.timeSlot}')" 
+              <button onclick="bookNewSlotInClassroom('${timeSlot}')" 
                       style="background: #4caf50; color: white; border: none; padding: 4px 8px; border-radius: 3px; font-size: 0.75em; cursor: pointer; font-weight: bold; width: 100%;">
                 ➕ حجز إضافي
               </button>
@@ -379,33 +393,14 @@ function bookNewSlotInClassroom(timeSlot) {
     return;
   }
   
-  // إنشاء خانة وهمية للاستفادة من النظام الحالي
-  const dummyCell = document.createElement('td');
-  dummyCell.setAttribute('data-time', timeSlot);
-  dummyCell.setAttribute('data-day', getCurrentDayFromTimeSlot(timeSlot));
-  
-  currentBookingCell = dummyCell;
-  openBookingModal(dummyCell);
-}
-
-// دالة مساعدة لاستخراج اليوم من الفترة الزمنية
-function getCurrentDayFromTimeSlot(timeSlot) {
-  // البحث عن أول حجز في نفس الفترة لمعرفة اليوم
-  const existingReservation = reservations.find(r => 
-    r.room === selectedRoom && r.timeSlot === timeSlot
-  );
-  
-  if (existingReservation) {
-    const date = new Date(existingReservation.date);
-    const weekDates = getWeekDates(currentWeek);
-    const dayIndex = weekDates.findIndex(weekDate => 
-      weekDate.toDateString() === date.toDateString()
-    );
-    return dayIndex;
+  // البحث عن الخانة الحقيقية في الجدول
+  const realCell = document.querySelector(`td[data-time="${timeSlot}"]`);
+  if (realCell) {
+    currentBookingCell = realCell;
+    openBookingModal(realCell);
+  } else {
+    alert('⚠️ خطأ في العثور على الخانة الزمنية');
   }
-  
-  // إذا لم نجد حجز موجود، نستخدم اليوم الحالي
-  return new Date().getDay();
 }
 
 // إلغاء حجز
