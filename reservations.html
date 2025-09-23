@@ -375,6 +375,59 @@ function showReservationTable() {
       }
     }
   });
+  
+  // إضافة أزرار خاصة للغرفة الصفية
+  if (selectedRoom === 'غرفة صفية') {
+    addClassroomButtons();
+  }
+}
+
+// دالة خاصة لإضافة أزرار الغرفة الصفية
+function addClassroomButtons() {
+  console.log('🚀 addClassroomButtons called');
+  
+  // البحث عن جميع خانات الجدول
+  const allCells = document.querySelectorAll('td[data-time]');
+  console.log('🔍 Found cells for buttons:', allCells.length);
+  
+  allCells.forEach(cell => {
+    const timeSlot = cell.getAttribute('data-time');
+    console.log('🔧 Processing cell:', timeSlot);
+    
+    // التحقق إذا كانت الخانة فارغة أو تحتاج زر إضافي
+    const isEmpty = !cell.innerHTML.trim() || cell.innerHTML.includes('خانة عادية');
+    
+    if (isEmpty) {
+      // خانة فارغة - إضافة زر حجز جديد
+      console.log('✅ Adding new booking button to empty cell:', timeSlot);
+      cell.innerHTML = `
+        <div style="text-align: center; padding: 15px;">
+          <button onclick="bookNewSlotInClassroom('${timeSlot}')" 
+                  style="background: #4caf50; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-size: 0.85em; cursor: pointer; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+            ➕ حجز جديد
+          </button>
+        </div>
+      `;
+      cell.style.backgroundColor = '#f9f9f9';
+    } else {
+      // خانة مشغولة - إضافة زر حجز إضافي
+      console.log('➕ Adding additional booking button to occupied cell:', timeSlot);
+      
+      const additionalButton = `
+        <div style="text-align: center; margin-top: 8px;">
+          <button onclick="bookNewSlotInClassroom('${timeSlot}')" 
+                  style="background: #4caf50; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 0.8em; cursor: pointer; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+            ➕ حجز إضافي
+          </button>
+        </div>
+      `;
+      
+      // إضافة الزر في نهاية محتوى الخانة
+      cell.innerHTML += additionalButton;
+    }
+  });
+  
+  console.log('✅ Classroom buttons added successfully');
 }
 
 // حجز فترة زمنية
