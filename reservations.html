@@ -248,6 +248,10 @@ function showReservationTable() {
   
   // عرض الحجوزات الحالية
   const weekDates = getWeekDates(currentWeek);
+  
+  // تجميع الحجوزات حسب الخانة الزمنية للغرفة الصفية
+  const reservationsByTimeSlot = {};
+  
   reservations.forEach(reservation => {
     if (reservation.room === selectedRoom) {
       const reservationDate = new Date(reservation.date);
@@ -256,27 +260,68 @@ function showReservationTable() {
       );
       
       if (dayIndex !== -1) {
-        const cell = document.querySelector(`td[data-time="${reservation.timeSlot}"]`);
-        if (cell) {
-          const gradeText = reservation.grade ? `الصف ${reservation.grade}` : '';
-          const sectionText = reservation.section ? `الشعبة ${reservation.section}` : '';
-          const phoneText = reservation.phone ? `📱 ${reservation.phone}` : '';
+        const key = reservation.timeSlot;
+        if (!reservationsByTimeSlot[key]) {
+          reservationsByTimeSlot[key] = [];
+        }
+        reservationsByTimeSlot[key].push(reservation);
+      }
+    }
+  });
+  
+  // عرض الحجوزات في الجدول
+  Object.keys(reservationsByTimeSlot).forEach(timeSlot => {
+    const cell = document.querySelector(`td[data-time="${timeSlot}"]`);
+    if (cell) {
+      const reservationsInSlot = reservationsByTimeSlot[timeSlot];
+      
+      if (selectedRoom === 'غرفة صفية' && reservationsInSlot.length > 1) {
+        // عرض حجوزات متعددة للغرفة الصفية
+        let cellContent = '<div style="font-size: 0.8em; line-height: 1.2;">';
+        
+        reservationsInSlot.forEach((reservation, index) => {
+          const gradeText = reservation.grade ? `${reservation.grade}` : '';
+          const sectionText = reservation.section ? `${reservation.section}` : '';
+          const bgColor = index % 2 === 0 ? '#e3f2fd' : '#f1f8e9';
           
-          cell.innerHTML = `
-            <div style="background: #e3f2fd; padding: 8px; border-radius: 4px; font-size: 0.85em; line-height: 1.3;">
-              <div style="font-weight: bold; color: #1565c0; margin-bottom: 2px;">👨‍🏫 ${reservation.teacher}</div>
-              <div style="color: #1976d2; margin-bottom: 2px;">📚 ${reservation.subject}</div>
-              ${gradeText && sectionText ? `<div style="color: #424242; font-size: 0.8em; margin-bottom: 2px;">🎓 ${gradeText} - ${sectionText}</div>` : ''}
-              ${phoneText ? `<div style="color: #424242; font-size: 0.8em; margin-bottom: 3px;">${phoneText}</div>` : ''}
+          cellContent += `
+            <div style="background: ${bgColor}; padding: 4px; border-radius: 3px; margin-bottom: 2px; border: 1px solid #ddd;">
+              <div style="font-weight: bold; color: #1565c0; font-size: 0.9em;">👨‍🏫 ${reservation.teacher}</div>
+              <div style="color: #1976d2; font-size: 0.85em;">📚 ${reservation.subject}</div>
+              ${gradeText && sectionText ? `<div style="color: #424242; font-size: 0.8em;">🎓 ${gradeText}-${sectionText}</div>` : ''}
               <button onclick="showReservationOptions('${reservation.id}', '${reservation.phone || ''}')" 
-                      style="background: #ff9800; color: white; border: none; padding: 3px 8px; border-radius: 3px; font-size: 0.75em; margin-top: 2px; cursor: pointer; width: 100%;">
-                ⚙️ إدارة الحجز
+                      style="background: #ff9800; color: white; border: none; padding: 2px 6px; border-radius: 3px; font-size: 0.7em; cursor: pointer; width: 100%; margin-top: 1px;">
+                ⚙️ إدارة
               </button>
             </div>
           `;
-          cell.style.backgroundColor = '#f3e5f5';
-          cell.onclick = null;
-        }
+        });
+        
+        cellContent += '</div>';
+        cell.innerHTML = cellContent;
+        cell.style.backgroundColor = '#fff3e0';
+        cell.onclick = null;
+      } else {
+        // عرض حجز واحد (للقاعات العادية أو حجز واحد في الغرفة الصفية)
+        const reservation = reservationsInSlot[0];
+        const gradeText = reservation.grade ? `الصف ${reservation.grade}` : '';
+        const sectionText = reservation.section ? `الشعبة ${reservation.section}` : '';
+        const phoneText = reservation.phone ? `📱 ${reservation.phone}` : '';
+        
+        cell.innerHTML = `
+          <div style="background: #e3f2fd; padding: 8px; border-radius: 4px; font-size: 0.85em; line-height: 1.3;">
+            <div style="font-weight: bold; color: #1565c0; margin-bottom: 2px;">👨‍🏫 ${reservation.teacher}</div>
+            <div style="color: #1976d2; margin-bottom: 2px;">📚 ${reservation.subject}</div>
+            ${gradeText && sectionText ? `<div style="color: #424242; font-size: 0.8em; margin-bottom: 2px;">🎓 ${gradeText} - ${sectionText}</div>` : ''}
+            ${phoneText ? `<div style="color: #424242; font-size: 0.8em; margin-bottom: 3px;">${phoneText}</div>` : ''}
+            <button onclick="showReservationOptions('${reservation.id}', '${reservation.phone || ''}')" 
+                    style="background: #ff9800; color: white; border: none; padding: 3px 8px; border-radius: 3px; font-size: 0.75em; margin-top: 2px; cursor: pointer; width: 100%;">
+              ⚙️ إدارة الحجز
+            </button>
+          </div>
+        `;
+        cell.style.backgroundColor = '#f3e5f5';
+        cell.onclick = null;
       }
     }
   });
@@ -455,6 +500,34 @@ function submitBooking(event) {
   else if (timeSlot.startsWith('tue')) dayIndex = 2;
   else if (timeSlot.startsWith('wed')) dayIndex = 3;
   else if (timeSlot.startsWith('thu')) dayIndex = 4;
+
+  // فحص التعارضات قبل إضافة الحجز
+  const targetDate = weekDates[dayIndex].toISOString();
+  const existingReservations = reservations.filter(r => 
+    r.room === selectedRoom && 
+    r.timeSlot === timeSlot && 
+    r.date === targetDate
+  );
+
+  // منطق منع التعارضات حسب نوع القاعة
+  if (selectedRoom === 'غرفة صفية') {
+    // للغرفة الصفية: يُمنع التعارض فقط إذا كان نفس الصف ونفس الشعبة
+    const conflictingReservation = existingReservations.find(r => 
+      r.grade === grade && r.section === section
+    );
+    
+    if (conflictingReservation) {
+      alert(`⚠️ تعارض في الحجز!\nيوجد حجز سابق لنفس الصف (${grade}) والشعبة (${section}) في نفس الوقت.\n\n👨‍🏫 المعلم: ${conflictingReservation.teacher}\n📚 المادة: ${conflictingReservation.subject}\n📱 الهاتف: ${conflictingReservation.phone || 'غير محدد'}`);
+      return;
+    }
+  } else {
+    // لباقي القاعات: يُمنع أي حجز إضافي في نفس الوقت
+    if (existingReservations.length > 0) {
+      const existingReservation = existingReservations[0];
+      alert(`⚠️ القاعة محجوزة!\nيوجد حجز سابق في نفس الوقت.\n\n👨‍🏫 المعلم: ${existingReservation.teacher}\n📚 المادة: ${existingReservation.subject}\n🎓 الصف: ${existingReservation.grade} - الشعبة ${existingReservation.section}\n📱 الهاتف: ${existingReservation.phone || 'غير محدد'}`);
+      return;
+    }
+  }
   
   // إنشاء الحجز الجديد
   const reservation = {
