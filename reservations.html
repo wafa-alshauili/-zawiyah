@@ -351,23 +351,17 @@ function showReservationTable() {
             ${gradeText && sectionText ? `<div style="color: #424242; font-size: 0.8em; margin-bottom: 2px;">🎓 ${gradeText} - ${sectionText}</div>` : ''}
             ${phoneText ? `<div style="color: #424242; font-size: 0.8em; margin-bottom: 3px;">${phoneText}</div>` : ''}
             <button onclick="showReservationOptions('${reservation.id}', '${reservation.phone || ''}')" 
-                    style="background: #ff9800; color: white; border: none; padding: 3px 8px; border-radius: 3px; font-size: 0.75em; margin-top: 2px; cursor: pointer; width: 100%;">
+                    style="background: #ff9800; color: white; border: none; padding: 3px 8px; border-radius: 3px; font-size: 0.75em; margin-top: 2px; cursor: pointer; width: 100%; margin-bottom: 4px;">
               ⚙️ إدارة الحجز
             </button>
-          </div>
-        `;
-        
-        // إضافة زر "حجز جديد" للغرفة الصفية حتى لو كان هناك حجز واحد
-        if (selectedRoom === 'غرفة صفية') {
-          cellContent += `
-            <div style="text-align: center; margin-top: 6px;">
+            ${selectedRoom === 'غرفة صفية' ? `
               <button onclick="bookNewSlotInClassroom('${timeSlot}')" 
-                      style="background: #4caf50; color: white; border: none; padding: 4px 8px; border-radius: 3px; font-size: 0.75em; cursor: pointer; font-weight: bold; width: 100%;">
+                      style="background: #4caf50; color: white; border: none; padding: 3px 8px; border-radius: 3px; font-size: 0.75em; cursor: pointer; font-weight: bold; width: 100%;">
                 ➕ حجز إضافي
               </button>
-            </div>
-          `;
-        }
+            ` : ''}
+          </div>
+        `;
         
         cell.innerHTML = cellContent;
         cell.style.backgroundColor = '#f3e5f5';
