@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>تشخيص الغرفة الصفية</title>
+<style>
+body { font-family: Arial, sans-serif; padding: 20px; }
+.debug { background: #f0f0f0; padding: 10px; margin: 10px 0; border-left: 4px solid #007cba; }
+.success { background: #d4edda; color: #155724; }
+.error { background: #f8d7da; color: #721c24; }
+button { margin: 5px; padding: 8px 16px; }
+</style>
+</head>
+<body>
+<h1>🔍 تشخيص مشكلة أزرار الغرفة الصفية</h1>
+
+<div class="debug">
+<h3>الخطوة 1: فحص وجود "غرفة صفية" في قائمة القاعات</h3>
+<button onclick="checkRooms()">فحص القاعات</button>
+<div id="rooms-result"></div>
+</div>
+
+<div class="debug">
+<h3>الخطوة 2: محاكاة اختيار "غرفة صفية"</h3>
+<select id="room-test" onchange="testRoomSelection()">
+  <option value="">-- اختر قاعة --</option>
+  <option value="المختبر">المختبر</option>
+  <option value="غرفة صفية">غرفة صفية</option>
+</select>
+<div id="selection-result"></div>
+</div>
+
+<div class="debug">
+<h3>الخطوة 3: محاكاة إنشاء جدول مع أزرار</h3>
+<button onclick="createTestTable()">إنشاء جدول اختبار</button>
+<div id="table-container"></div>
+</div>
+
+<div class="debug">
+<h3>الخطوة 4: فحص localStorage</h3>
+<button onclick="checkLocalStorage()">فحص localStorage</button>
+<div id="storage-result"></div>
+</div>
+
+<script>
+let selectedRoom = null;
+
+function checkRooms() {
+  // محاكاة نفس الكود الموجود في الملف الأصلي
+  const savedRooms = localStorage.getItem('school_rooms');
+  const rooms = savedRooms ? JSON.parse(savedRooms) : ['المختبر', 'قاعة الحاسوب', 'المكتبة', 'القاعة الرئيسية', 'القاعة الذكية', 'غرفة صفية'];
+  
+  const result = document.getElementById('rooms-result');
+  result.innerHTML = `
+    <div class="success">
+      <strong>✅ القاعات المتاحة:</strong><br>
+      ${rooms.map((room, index) => `${index + 1}. ${room}`).join('<br>')}
+      <br><br>
+      <strong>هل "غرفة صفية" موجودة؟</strong> ${rooms.includes('غرفة صفية') ? '✅ نعم' : '❌ لا'}
+    </div>
+  `;
+}
+
+function testRoomSelection() {
+  selectedRoom = document.getElementById('room-test').value;
+  const result = document.getElementById('selection-result');
+  
+  if (selectedRoom === 'غرفة صفية') {
+    result.innerHTML = `
+      <div class="success">
+        ✅ تم اختيار "غرفة صفية" بنجاح!<br>
+        selectedRoom = "${selectedRoom}"
+      </div>
+    `;
+  } else if (selectedRoom) {
+    result.innerHTML = `
+      <div class="error">
+        ⚠️ تم اختيار "${selectedRoom}" - ليست غرفة صفية
+      </div>
+    `;
+  } else {
+    result.innerHTML = `<div>لم يتم اختيار أي قاعة</div>`;
+  }
+}
+
+function createTestTable() {
+  if (!selectedRoom) {
+    alert('اختر "غرفة صفية" أولاً من الخطوة 2');
+    return;
+  }
+  
+  const container = document.getElementById('table-container');
+  container.innerHTML = `
+    <h4>جدول اختبار للغرفة: ${selectedRoom}</h4>
+    <table border="1" style="width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr><th>اليوم</th><th>الحصة الأولى</th><th>الحصة الثانية</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>الأحد</td>
+          <td id="test-cell-1" data-time="sun-1" style="padding: 20px; border: 1px solid #ddd;"></td>
+          <td id="test-cell-2" data-time="sun-2" style="padding: 20px; border: 1px solid #ddd;"></td>
+        </tr>
+      </tbody>
+    </table>
+  `;
+  
+  // تطبيق نفس المنطق الموجود في الكود الأصلي
+  const cells = container.querySelectorAll('td[data-time]');
+  cells.forEach(cell => {
+    if (selectedRoom === 'غرفة صفية') {
+      const timeSlot = cell.getAttribute('data-time');
+      cell.innerHTML = `
+        <div style="text-align: center; padding: 15px;">
+          <button onclick="testButtonClick('${timeSlot}')" 
+                  style="background: #4caf50; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-size: 0.85em; cursor: pointer; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+            ➕ حجز جديد
+          </button>
+        </div>
+      `;
+      cell.style.backgroundColor = '#f9f9f9';
+    } else {
+      cell.innerHTML = 'خانة عادية';
+      cell.style.backgroundColor = '';
+    }
+  });
+}
+
+function testButtonClick(timeSlot) {
+  alert(`✅ الزر يعمل بنجاح!\nالفترة الزمنية: ${timeSlot}`);
+}
+
+function checkLocalStorage() {
+  const result = document.getElementById('storage-result');
+  const rooms = localStorage.getItem('school_rooms');
+  const reservations = localStorage.getItem('school_reservations');
+  
+  result.innerHTML = `
+    <div class="success">
+      <strong>📦 محتويات localStorage:</strong><br><br>
+      <strong>school_rooms:</strong> ${rooms || 'غير موجود'}<br><br>
+      <strong>school_reservations:</strong> ${reservations ? JSON.parse(reservations).length + ' حجز' : 'غير موجود'}<br><br>
+      <button onclick="localStorage.clear(); alert('تم مسح localStorage');">مسح localStorage</button>
+    </div>
+  `;
+}
+
+// تشغيل الفحص الأولي
+window.onload = function() {
+  checkRooms();
+  checkLocalStorage();
+};
+</script>
+
+</body>
+</html>

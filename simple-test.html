@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>اختبار مبسط للغرفة الصفية</title>
+<style>
+body { font-family: Arial, sans-serif; padding: 20px; }
+table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+td { border: 1px solid #ddd; padding: 20px; text-align: center; min-height: 60px; }
+.classroom-cell { background: #f9f9f9; }
+button { 
+  background: #4caf50; 
+  color: white; 
+  border: none; 
+  padding: 8px 16px; 
+  border-radius: 4px; 
+  cursor: pointer; 
+  font-weight: bold;
+}
+</style>
+</head>
+<body>
+<h1>🧪 اختبار مبسط - أزرار الغرفة الصفية</h1>
+
+<div>
+  <label>اختر القاعة:</label>
+  <select id="room-select" onchange="handleRoomChange()">
+    <option value="">-- اختر القاعة --</option>
+    <option value="المختبر">المختبر</option>
+    <option value="قاعة الحاسوب">قاعة الحاسوب</option>
+    <option value="المكتبة">المكتبة</option>
+    <option value="القاعة الرئيسية">القاعة الرئيسية</option>
+    <option value="القاعة الذكية">القاعة الذكية</option>
+    <option value="غرفة صفية">غرفة صفية</option>
+  </select>
+</div>
+
+<div id="result" style="margin-top: 20px; font-weight: bold; color: #333;"></div>
+
+<table id="test-table" style="display: none;">
+  <thead>
+    <tr>
+      <th>اليوم</th>
+      <th>الحصة الأولى</th>
+      <th>الحصة الثانية</th>
+      <th>الحصة الثالثة</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>الأحد</td>
+      <td data-time="sun-1"></td>
+      <td data-time="sun-2"></td>
+      <td data-time="sun-3"></td>
+    </tr>
+    <tr>
+      <td>الإثنين</td>
+      <td data-time="mon-1"></td>
+      <td data-time="mon-2"></td>
+      <td data-time="mon-3"></td>
+    </tr>
+  </tbody>
+</table>
+
+<script>
+let selectedRoom = null;
+
+function handleRoomChange() {
+  const select = document.getElementById('room-select');
+  selectedRoom = select.value;
+  const result = document.getElementById('result');
+  const table = document.getElementById('test-table');
+  
+  console.log('🎯 Room selected:', selectedRoom);
+  console.log('🎯 Is classroom?', selectedRoom === 'غرفة صفية');
+  
+  if (selectedRoom) {
+    result.innerHTML = `✅ تم اختيار: ${selectedRoom}`;
+    table.style.display = 'table';
+    
+    // تطبيق المنطق على جميع الخانات
+    const cells = document.querySelectorAll('td[data-time]');
+    console.log('🔍 Found cells:', cells.length);
+    
+    cells.forEach(cell => {
+      if (selectedRoom === 'غرفة صفية') {
+        const timeSlot = cell.getAttribute('data-time');
+        console.log('✅ Adding button to cell:', timeSlot);
+        
+        cell.innerHTML = `
+          <button onclick="testClick('${timeSlot}')">
+            ➕ حجز جديد
+          </button>
+        `;
+        cell.className = 'classroom-cell';
+      } else {
+        console.log('⚠️ Not classroom, cell cleared');
+        cell.innerHTML = 'خانة عادية';
+        cell.className = '';
+      }
+    });
+    
+    // عد الأزرار المضافة
+    const buttons = table.querySelectorAll('button');
+    console.log('🔢 Buttons added:', buttons.length);
+    
+    if (selectedRoom === 'غرفة صفية') {
+      result.innerHTML += `<br>🎉 تم إضافة ${buttons.length} زر "حجز جديد"`;
+    }
+    
+  } else {
+    result.innerHTML = 'لم يتم اختيار أي قاعة';
+    table.style.display = 'none';
+  }
+}
+
+function testClick(timeSlot) {
+  alert(`✅ الزر يعمل!\nالفترة: ${timeSlot}\nالقاعة: ${selectedRoom}`);
+}
+
+// إظهار معلومات التشخيص
+console.log('🚀 Page loaded, ready for testing');
+</script>
+
+</body>
+</html>
